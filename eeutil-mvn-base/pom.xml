@@ -20,12 +20,6 @@
 	<packaging>pom</packaging>
 	<description>Librerias del proyecto Eeutil</description>
 
-	<!-- scm>
-		<connection>scm:svn:svn://dev.map.es/repo/svn/InSide/trunk/Desarrollo/inside-mvn-base</connection>
-		<developerConnection>scm:svn:svn+ssh://{mpt.username}@dev.map.es/repo/svn/InSide/trunk/Desarrollo/inside-mvn-base</developerConnection>
-		<url>http://dev.map.es/trac/InSide/browser/trunk/Desarrollo/inside-mvn-base/</url>
-	</scm-->
-
 	<organization>
 		<name>Ministerio de Politica Territorial y Administración Pública</name>
 		<url>http://www.mpt.es</url>
@@ -46,6 +40,37 @@
 		<skip.tests>true</skip.tests>
 		<fork.mode.itegration.tests>never</fork.mode.itegration.tests>
 	</properties>
+
+	<scm>
+		<connection>scm:git:https://github.com/aid35y/Eeutil-Misc.git</connection>
+		<developerConnection>scm:git:[push=]https://github.com/aid35y/Eeutil-Misc.git[fetch=]https://github.com/aid35y/Eeutil-Misc.git</developerConnection>
+		<url>https://github.com/aid35y/Eeutil-Misc.git</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<repositories>
+		<repository>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>
+			<id>Eeutil-Misc</id>
+			<name>Eeutil-Misc</name>
+			<url>https://raw.githubusercontent.com/aid35y/Eeutil-Misc/mvn-repo</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
