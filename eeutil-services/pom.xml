@@ -19,6 +19,7 @@
 	<parent>
 		<groupId>es.gob.aapp.eeutil</groupId>
 		<artifactId>eeutil-mvn-base</artifactId>
+		<relativePath>../eeutil-mvn-base</relativePath> 
 		<version>4.1</version>
 	</parent>
 

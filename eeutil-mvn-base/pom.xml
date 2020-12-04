@@ -403,8 +403,6 @@
 	
 	<modules>
         <module>../eeutil-afirmaws-stub</module>
-        <module>../eeutil-csvbroker-stub</module>
-        <module>../eeutil-csvstoragews-stub</module>
      	<module>../eeutil-inside-stub</module>
      	<module>../eeutil-model</module>
 		<module>../eeutil-pdf-conversion</module>
@@ -413,11 +411,17 @@
         <module>../eeutil-comunes</module>
         <module>../eeutil-util</module>
         <module>../load-tables</module>
-        <module>../eeutil-firma</module>
         <module>../eeutil-misc</module>
+        
+        <!--  
+        <module>../eeutil-csvbroker-stub</module>
+        <module>../eeutil-csvstoragews-stub</module>
+        <module>../eeutil-firma</module>
         <module>../eeutil-oper-firma</module>
         <module>../eeutil-util-firma</module>
         <module>../eeutil-vis-docexp</module>
+        -->
+        
 	</modules>
 
 	<build>
