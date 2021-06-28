@@ -37,17 +37,17 @@
     <dependency>
       <groupId>es.gob.aapp.eeutil</groupId>
       <artifactId>eeutil-pdf-conversion-igae</artifactId>
-      <version>4.2.0-CARM.1-SNAPSHOT</version>
+      <version>${version.eeutils-shared}</version>
     </dependency>
     <dependency>
       <groupId>es.gob.aapp.eeutil</groupId>
       <artifactId>eeutil-comunes</artifactId>
-      <version>4.2.0-CARM.1-SNAPSHOT</version>
+      <version>${version.eeutils-shared}</version>
     </dependency>
     <dependency>
       <groupId>es.gob.aapp.eeutil</groupId>
       <artifactId>eeutil-load-tables</artifactId>
-      <version>4.2.0-CARM.1-SNAPSHOT</version>
+      <version>${version.eeutils-shared}</version>
       <exclusions>
         <exclusion>
           <artifactId>slf4j-api</artifactId>
