@@ -8,6 +8,7 @@
 
   <packaging>pom</packaging>
   <name>eeutil-misc</name>
+  <inceptionYear>2020</inceptionYear>
 
   <licenses>
     <license>
