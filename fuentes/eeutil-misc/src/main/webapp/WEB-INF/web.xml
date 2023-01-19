@@ -15,6 +15,13 @@
         eeutil-misc WS
     </description> 
     <!-- Creates the Spring Container shared by all Servlets and Filters --> 
+    <context-param>
+      <param-name>log4jConfiguration</param-name>
+      <param-value>file:${sys:catalina.home}/conf/eeutil-misc/log4j2.xml</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.apache.logging.log4j.web.Log4jServletContextListener</listener-class>
+    </listener>    
     <listener> 
         <listener-class>
             es.mpt.dsic.inside.config.resources.ConfigLoaderListener
