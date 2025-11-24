@@ -30,20 +30,20 @@ public interface EeUtilServiceMtom {
   @WebMethod(operationName = "comprobarPDFA", action = "urn:comprobarPDFA")
   @WebResult(name = "esPdfA", partName = "esPdfA")
   public Boolean comprobarPDFA(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "DocumentoEntradaMtom") @XmlElement(required = true,
-          name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "DocumentoEntradaMtom")
+      @XmlElement(required = true, name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 
   @WebMethod(operationName = "convertirPDFA", action = "urn:convertirPDFA")
   @WebResult(name = "PdfSalidaMtom", partName = "PdfSalidaMtom")
   public PdfSalidaMtom convertirPDFA(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "DocumentoEntradaMtom") @XmlElement(required = true,
-          name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "DocumentoEntradaMtom")
+      @XmlElement(required = true, name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 
