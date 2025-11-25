@@ -241,11 +241,6 @@
       <artifactId>core</artifactId>
       <version>${verapdf.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.pdfTools</groupId>
-      <artifactId>pdfA.validator</artifactId>
-      <version>4.3</version>
-    </dependency>
     <!-- para mappear json -->
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
