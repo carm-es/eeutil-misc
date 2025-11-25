@@ -17,6 +17,8 @@
     <jetty.port>8091</jetty.port>
     <stork-commons.version>1.4.3-custom</stork-commons.version>
     <stork-saml.version>1.1.3-custom</stork-saml.version>
+    <pdfbox.version>2.0.31</pdfbox.version>
+    <verapdf.version>1.28.2</verapdf.version>
   </properties>
 
   <dependencies>
@@ -220,9 +222,24 @@
     </dependency>
     <!-- PDF TOOLS -->
     <dependency>
-      <groupId>com.pdfTools</groupId>
-      <artifactId>pdfA</artifactId>
-      <version>4.4</version>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>${pdfbox.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>xmpbox</artifactId>
+      <version>${pdfbox.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.verapdf</groupId>
+      <artifactId>validation-model</artifactId>
+      <version>${verapdf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.verapdf</groupId>
+      <artifactId>core</artifactId>
+      <version>${verapdf.version}</version>
     </dependency>
     <dependency>
       <groupId>com.pdfTools</groupId>

@@ -11,12 +11,8 @@
 
 package es.mpt.dsic.inside.ws.service.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.Calendar;
 import javax.annotation.Resource;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
@@ -36,11 +32,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.DublinCoreSchema;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.xml.XmpSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.pdftools.NativeLibrary;
-import com.pdftools.pdf2pdf.Pdf2PdfAPI;
 import es.mpt.dsic.eeutil.operFirma.consumer.impl.ConsumerEeutilOperFirmaImpl;
 import es.mpt.dsic.inside.config.EeutilApplicationDataConfig;
 import es.mpt.dsic.inside.pdf.converter.HtmlConverter;
@@ -64,6 +65,10 @@ import es.mpt.dsic.inside.ws.service.model.pdf.DocumentoEntrada;
 import es.mpt.dsic.inside.ws.service.model.pdf.PdfSalida;
 import es.mpt.dsic.inside.ws.service.util.UtilFacturae;
 import es.mpt.dsic.inside.ws.service.util.UtilPdfA;
+
+import org.verapdf.pdfa.flavours.PDFAFlavour;
+
+
 
 @Service("eeUtilMiscUserNameTokenService")
 @WebService(endpointInterface = "es.mpt.dsic.inside.ws.service.EeUtilMiscUserNameTokenService")
@@ -216,6 +221,7 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
     return facturaPDFPost;
   }
 
+
   @Override
   public PdfSalida convertirPDFA(DocumentoEntrada docEntrada, Integer nivelCompilacion)
       throws InSideException {
@@ -234,40 +240,111 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
       pdfOriginal = pdfConverter.convertir(ipOpenOffice, portOpenOffice, new File(filePathIn),
           docEntrada.getMime());
 
-      Boolean isPDFA = utilPdfA.isPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
-          docEntrada.getPassword(), nivelCompilacion);
 
-      // Validate document
+      // Determinar el flavour de PDF/A objetivo
+      PDFAFlavour flavourObjetivo = UtilsPdfA.mapearFlavourVeraPDF(nivelCompilacion);
+
+      // Verificar si ya es PDF/A usando veraPDF
+      boolean isPDFA = UtilsPdfA.validarConVeraPDF(pdfOriginal, flavourObjetivo);
+
       if (!isPDFA) {
-        Pdf2PdfAPI.setLicenseKey(utilPdfA.getConverterKey());
+        logger.debug("El documento no es PDF/A, iniciando conversión...");
 
-        Pdf2PdfAPI api = new Pdf2PdfAPI();
-        if (nivelCompilacion == null) {
-          api.setCompliance(NativeLibrary.COMPLIANCE.ePDFA2b);
-        } else {
-          api.setCompliance(nivelCompilacion);
-        }
-        api.setReportDetails(utilPdfA.isConverterReportDetails());
-        api.setReportSummary(utilPdfA.isConverterReportSummary());
-        api.setSubsetFonts(utilPdfA.isConverterSubsetFonts());
-        api.setPostAnalyze(utilPdfA.isConverterPostAnalyze());
+        try (PDDocument document = PDDocument.load(pdfOriginal, docEntrada.getPassword())) {
 
-        int numberPages = utilPdfA.getPdfNumbersPages(pdfOriginal);
-        // insercion en bbdd
-        aplicacionConversionService.saveAplicacionConversionInfo(
-            credentialUtil.getCredentialEeutilUserToken(wsContext).getIdApplicacion(), numberPages);
+          // Obtener número de páginas para registro
+          int numberPages = document.getNumberOfPages();
+          aplicacionConversionService.saveAplicacionConversionInfo("EEUTILS-CARM", numberPages);
 
-        boolean convert = api.convertMem2(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
-            docEntrada.getPassword());
+          // Determinar nivel de conformidad
+          String part = "2";
+          String conformance = "B";
 
-        if (convert) {
-          retorno.setMime("application/pdf");
-          retorno.setContenido(api.getPDF());
-        } else {
+          if (flavourObjetivo != null) {
+            part = String.valueOf(flavourObjetivo.getPart().getPartNumber());
+            conformance = flavourObjetivo.getLevel().getCode();
+          }
+
+          // Crear esquema de metadatos XMP para PDF/A
+          XMPMetadata xmp = XMPMetadata.createXMPMetadata();
+
+          // Configurar información PDF/A
+          PDFAIdentificationSchema pdfaid = xmp.createAndAddPDFAIdentificationSchema();
+          pdfaid.setConformance(conformance);
+          pdfaid.setPart(Integer.parseInt(part));
+
+          // Configurar Dublin Core
+          DublinCoreSchema dc = xmp.createAndAddDublinCoreSchema();
+          dc.setTitle("Documento convertido a PDF/A");
+          dc.addCreator("Sistema de Conversión");
+          dc.addDate(Calendar.getInstance());
+
+          // Serializar y establecer metadatos
+          ByteArrayOutputStream xmpOut = new ByteArrayOutputStream();
+          new XmpSerializer().serialize(xmp, xmpOut, true);
+
+          PDMetadata metadata = new PDMetadata(document);
+          metadata.importXMPMetadata(xmpOut.toByteArray());
+          document.getDocumentCatalog().setMetadata(metadata);
+
+          // Configurar OutputIntent para PDF/A (perfil de color sRGB)
+          InputStream colorProfile = getClass().getResourceAsStream("/sRGB.icc");
+          if (colorProfile == null) {
+            // Alternativa: buscar en el classpath
+            colorProfile =
+                Thread.currentThread().getContextClassLoader().getResourceAsStream("sRGB.icc");
+          }
+
+          if (colorProfile != null) {
+            PDOutputIntent outputIntent = new PDOutputIntent(document, colorProfile);
+            outputIntent.setInfo("sRGB IEC61966-2.1");
+            outputIntent.setOutputCondition("sRGB IEC61966-2.1");
+            outputIntent.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+            outputIntent.setRegistryName("http://www.color.org");
+            document.getDocumentCatalog().addOutputIntent(outputIntent);
+          } else {
+            logger.warn(
+                "No se encontró el perfil de color sRGB.icc, la conversión puede no ser válida");
+          }
+
+          // Marcar para uso tagged (para PDF/A-1a, 2a, 3a)
+          if ("A".equalsIgnoreCase(conformance)) {
+            document.getDocumentCatalog().setMarkInfo(document.getDocumentCatalog().getMarkInfo());
+          }
+
+          // Guardar documento convertido en archivo temporal
+          File pdfConvertido = File.createTempFile("pdfa_converted_", ".pdf");
+          document.save(pdfConvertido);
+
+          // Validar con veraPDF
+          boolean conversionExitosa = UtilsPdfA.validarConVeraPDF(pdfConvertido, flavourObjetivo);
+
+          if (conversionExitosa) {
+            logger.debug("Conversión a PDF/A exitosa y validada");
+            retorno.setMime("application/pdf");
+            retorno.setContenido(IOUtils.toByteArray(new FileInputStream(pdfConvertido)));
+
+          } else {
+            logger.error("La conversión no cumple con el estándar PDF/A requerido");
+            // Obtener detalles de validación
+            String detallesError =
+                UtilsPdfA.obtenerDetallesValidacion(pdfConvertido, flavourObjetivo);
+            EstadoInfo estadoInfo = new EstadoInfo();
+            estadoInfo.setDescripcion(
+                "La conversión a PDF/A no cumple con el estándar: " + detallesError);
+            throw new InSideException("Error al convertir a PDF/A", estadoInfo);
+          }
+
+          // Limpiar archivo temporal
+          pdfConvertido.delete();
+
+        } catch (Exception e) {
+          logger.error("Error procesando el PDF", e);
           EstadoInfo estadoInfo = new EstadoInfo();
-          estadoInfo.setDescripcion(new String(api.getLog(), XMLUtil.UTF8_CHARSET));
-          throw new InSideException("Error al convertir a PDF/A: ", estadoInfo);
+          estadoInfo.setDescripcion("Error procesando el PDF: " + e.getMessage());
+          throw new InSideException("Error al convertir a PDF/A", estadoInfo);
         }
+
       } else {
         retorno.setMime("application/pdf");
         retorno.setContenido(IOUtils.toByteArray(new FileInputStream(pdfOriginal)));
@@ -304,4 +381,6 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
       throws InSideException {
     return utilPdfA.isPDFA(docEntrada.getContenido(), docEntrada.getPassword(), nivelCompilacion);
   }
+
+
 }
