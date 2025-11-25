@@ -8,6 +8,7 @@
 
   <packaging>pom</packaging>
   <name>eeutil-misc</name>
+  <description>Proyecto MISC para las Eeutils de la AGE</description>
   <inceptionYear>2020</inceptionYear>
 
   <licenses>
