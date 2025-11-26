@@ -232,14 +232,9 @@
       <version>${pdfbox.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.verapdf</groupId>
-      <artifactId>validation-model</artifactId>
-      <version>${verapdf.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.verapdf</groupId>
-      <artifactId>core</artifactId>
-      <version>${verapdf.version}</version>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>preflight</artifactId>
+      <version>${pdfbox.version}</version>
     </dependency>
     <!-- para mappear json -->
     <dependency>

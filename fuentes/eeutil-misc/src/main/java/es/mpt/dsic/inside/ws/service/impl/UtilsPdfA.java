@@ -2,11 +2,9 @@ package es.mpt.dsic.inside.ws.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.verapdf.pdfa.Foundries;
-import org.verapdf.pdfa.PDFAParser;
-import org.verapdf.pdfa.PDFAValidator;
-import org.verapdf.pdfa.flavours.PDFAFlavour;
-import org.verapdf.pdfa.results.ValidationResult;
+import org.apache.pdfbox.preflight.PreflightDocument;
+import org.apache.pdfbox.preflight.ValidationResult;
+import org.apache.pdfbox.preflight.parser.PreflightParser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,26 +13,20 @@ public class UtilsPdfA {
   protected final static Log logger = LogFactory.getLog(UtilsPdfA.class);
 
   /**
-   * Valida un PDF contra el estándar PDF/A usando veraPDF
+   * Valida un PDF contra el estándar PDF/A usando PDFBox Preflight
    */
-  public static boolean validarConVeraPDF(File pdfFile, PDFAFlavour flavour) {
+  public static boolean validarConPDFBox(File pdfFile, String flavour) {
     try {
-      // Inicializar veraPDF
-      // VeraGreenfieldFoundryProvider.initialise();
+      PreflightParser parser = new PreflightParser(pdfFile);
+      parser.parse();
 
-      PDFAFlavour flavourAUsar = (flavour != null) ? flavour : PDFAFlavour.PDFA_2_B;
-
-      try (PDFAParser parser =
-          Foundries.defaultInstance().createParser(new FileInputStream(pdfFile), flavourAUsar)) {
-
-        PDFAValidator validator = Foundries.defaultInstance().createValidator(flavourAUsar, false);
-
-        ValidationResult result = validator.validate(parser);
-
-        return result.isCompliant();
+      try (PreflightDocument document = parser.getPreflightDocument()) {
+        document.validate();
+        ValidationResult result = document.getResult();
+        return result.isValid();
       }
     } catch (Exception e) {
-      logger.error("Error validando PDF/A con veraPDF", e);
+      logger.error("Error validando PDF/A con PDFBox Preflight", e);
       return false;
     }
   }
@@ -42,36 +34,29 @@ public class UtilsPdfA {
   /**
    * Obtiene detalles de los errores de validación
    */
-  public static String obtenerDetallesValidacion(File pdfFile, PDFAFlavour flavour) {
+  public static String obtenerDetallesValidacion(File pdfFile, String flavour) {
     try {
-      // VeraFoundryProvider.initialise();
+      PreflightParser parser = new PreflightParser(pdfFile);
+      parser.parse();
 
-      PDFAFlavour flavourAUsar = (flavour != null) ? flavour : PDFAFlavour.PDFA_2_B;
-
-      try (PDFAParser parser =
-          Foundries.defaultInstance().createParser(new FileInputStream(pdfFile), flavourAUsar)) {
-
-        PDFAValidator validator = Foundries.defaultInstance().createValidator(flavourAUsar, false);
-
-        ValidationResult result = validator.validate(parser);
+      try (PreflightDocument document = parser.getPreflightDocument()) {
+        document.validate();
+        ValidationResult result = document.getResult();
 
         StringBuilder detalles = new StringBuilder();
-        detalles.append("Conformidad: ").append(result.isCompliant()).append(". ");
-        detalles.append("Total de checks: ").append(result.getTotalAssertions()).append(". ");
+        detalles.append("Conformidad: ").append(result.isValid()).append(". ");
 
-        if (!result.isCompliant() && result.getTestAssertions() != null) {
-          int failedCount = 0;
-          detalles.append(" Primeros errores: ");
-          for (org.verapdf.pdfa.results.TestAssertion assertion : result.getTestAssertions()) {
-            if (assertion.getStatus() == org.verapdf.pdfa.results.TestAssertion.Status.FAILED) {
-              failedCount++;
-              if (failedCount <= 3) {
-                detalles.append(assertion.getRuleId()).append(": ").append(assertion.getMessage())
-                    .append("; ");
-              }
+        if (!result.isValid() && result.getErrorsList() != null) {
+          detalles.append("Errores: ").append(result.getErrorsList().size()).append(". ");
+          int count = 0;
+          for (org.apache.pdfbox.preflight.ValidationResult.ValidationError error : result
+              .getErrorsList()) {
+            if (count < 3) {
+              detalles.append(error.getErrorCode()).append(": ").append(error.getDetails())
+                  .append("; ");
             }
+            count++;
           }
-          detalles.append("Checks fallidos: ").append(failedCount).append(".");
         }
 
         return detalles.toString();
@@ -82,35 +67,23 @@ public class UtilsPdfA {
   }
 
   /**
-   * Mapea el nivel de compilación al flavour de veraPDF
+   * Mapea el nivel de compilación al flavour de PDFBox
    */
-  public static PDFAFlavour mapearFlavourVeraPDF(Object nivelCompilacion) {
+  public static String mapearFlavourPDFBox(Object nivelCompilacion) {
     if (nivelCompilacion == null) {
-      return PDFAFlavour.PDFA_2_B;
+      return "PDFA_1_B";
     }
 
     String nivel = nivelCompilacion.toString().toUpperCase();
 
-    // Mapeo de niveles comunes
+    // PDFBox Preflight principalmente soporta PDF/A-1b
     if (nivel.contains("1A") || nivel.contains("1_A")) {
-      return PDFAFlavour.PDFA_1_A;
+      return "PDFA_1_A";
     } else if (nivel.contains("1B") || nivel.contains("1_B")) {
-      return PDFAFlavour.PDFA_1_B;
-    } else if (nivel.contains("2A") || nivel.contains("2_A")) {
-      return PDFAFlavour.PDFA_2_A;
-    } else if (nivel.contains("2B") || nivel.contains("2_B")) {
-      return PDFAFlavour.PDFA_2_B;
-    } else if (nivel.contains("2U") || nivel.contains("2_U")) {
-      return PDFAFlavour.PDFA_2_U;
-    } else if (nivel.contains("3A") || nivel.contains("3_A")) {
-      return PDFAFlavour.PDFA_3_A;
-    } else if (nivel.contains("3B") || nivel.contains("3_B")) {
-      return PDFAFlavour.PDFA_3_B;
-    } else if (nivel.contains("3U") || nivel.contains("3_U")) {
-      return PDFAFlavour.PDFA_3_U;
+      return "PDFA_1_B";
     }
 
-    // Por defecto PDF/A-2B
-    return PDFAFlavour.PDFA_2_B;
+    // Por defecto PDF/A-1B (el más soportado por PDFBox Preflight)
+    return "PDFA_1_B";
   }
 }

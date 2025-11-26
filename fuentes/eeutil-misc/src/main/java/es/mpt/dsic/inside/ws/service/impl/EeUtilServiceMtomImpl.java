@@ -43,7 +43,7 @@ import es.mpt.dsic.inside.ws.service.model.EstadoInfo;
 import es.mpt.dsic.inside.ws.service.model.pdf.DocumentoEntradaMtom;
 import es.mpt.dsic.inside.ws.service.model.pdf.PdfSalidaMtom;
 import es.mpt.dsic.inside.ws.service.util.UtilPdfA;
-import org.verapdf.pdfa.flavours.PDFAFlavour;
+
 
 @Service("eeUtilServiceMtom")
 @WebService(endpointInterface = "es.mpt.dsic.inside.ws.service.EeUtilServiceMtom")
@@ -87,7 +87,7 @@ public class EeUtilServiceMtomImpl implements EeUtilServiceMtom {
 
 
       // Determinar el flavour de PDF/A objetivo
-      PDFAFlavour flavourObjetivo = UtilsPdfA.mapearFlavourVeraPDF(nivelCompilacion);
+      String flavourObjetivo = UtilsPdfA.mapearFlavourPDFBox(nivelCompilacion);
 
       if (!isPDFA) {
         logger.debug("El documento no es PDF/A, iniciando conversión...");
@@ -102,9 +102,12 @@ public class EeUtilServiceMtomImpl implements EeUtilServiceMtom {
           String part = "2";
           String conformance = "B";
 
-          if (flavourObjetivo != null) {
-            part = String.valueOf(flavourObjetivo.getPart().getPartNumber());
-            conformance = flavourObjetivo.getLevel().getCode();
+          if (flavourObjetivo != null && flavourObjetivo.contains("1A")) {
+            part = "1";
+            conformance = "A";
+          } else if (flavourObjetivo != null && flavourObjetivo.contains("1B")) {
+            part = "1";
+            conformance = "B";
           }
 
           // Crear esquema de metadatos XMP para PDF/A
@@ -159,8 +162,8 @@ public class EeUtilServiceMtomImpl implements EeUtilServiceMtom {
           File pdfConvertido = File.createTempFile("pdfa_converted_", ".pdf");
           document.save(pdfConvertido);
 
-          // Validar con veraPDF
-          boolean conversionExitosa = UtilsPdfA.validarConVeraPDF(pdfConvertido, flavourObjetivo);
+          // Validar con PDFBox Preflight
+          boolean conversionExitosa = UtilsPdfA.validarConPDFBox(pdfConvertido, flavourObjetivo);
 
           if (conversionExitosa) {
             logger.debug("Conversión a PDF/A exitosa y validada");

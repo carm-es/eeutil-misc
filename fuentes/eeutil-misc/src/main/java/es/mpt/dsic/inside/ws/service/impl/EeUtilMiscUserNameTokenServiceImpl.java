@@ -66,8 +66,6 @@ import es.mpt.dsic.inside.ws.service.model.pdf.PdfSalida;
 import es.mpt.dsic.inside.ws.service.util.UtilFacturae;
 import es.mpt.dsic.inside.ws.service.util.UtilPdfA;
 
-import org.verapdf.pdfa.flavours.PDFAFlavour;
-
 
 
 @Service("eeUtilMiscUserNameTokenService")
@@ -242,10 +240,10 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
 
 
       // Determinar el flavour de PDF/A objetivo
-      PDFAFlavour flavourObjetivo = UtilsPdfA.mapearFlavourVeraPDF(nivelCompilacion);
+      String flavourObjetivo = UtilsPdfA.mapearFlavourPDFBox(nivelCompilacion);
 
-      // Verificar si ya es PDF/A usando veraPDF
-      boolean isPDFA = UtilsPdfA.validarConVeraPDF(pdfOriginal, flavourObjetivo);
+      // Verificar si ya es PDF/A usando PDFBox Preflight
+      boolean isPDFA = UtilsPdfA.validarConPDFBox(pdfOriginal, flavourObjetivo);
 
       if (!isPDFA) {
         logger.debug("El documento no es PDF/A, iniciando conversión...");
@@ -260,9 +258,12 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
           String part = "2";
           String conformance = "B";
 
-          if (flavourObjetivo != null) {
-            part = String.valueOf(flavourObjetivo.getPart().getPartNumber());
-            conformance = flavourObjetivo.getLevel().getCode();
+          if (flavourObjetivo != null && flavourObjetivo.contains("1A")) {
+            part = "1";
+            conformance = "A";
+          } else if (flavourObjetivo != null && flavourObjetivo.contains("1B")) {
+            part = "1";
+            conformance = "B";
           }
 
           // Crear esquema de metadatos XMP para PDF/A
@@ -317,8 +318,8 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
           File pdfConvertido = File.createTempFile("pdfa_converted_", ".pdf");
           document.save(pdfConvertido);
 
-          // Validar con veraPDF
-          boolean conversionExitosa = UtilsPdfA.validarConVeraPDF(pdfConvertido, flavourObjetivo);
+          // Validar con PDFBox Preflight
+          boolean conversionExitosa = UtilsPdfA.validarConPDFBox(pdfConvertido, flavourObjetivo);
 
           if (conversionExitosa) {
             logger.debug("Conversión a PDF/A exitosa y validada");

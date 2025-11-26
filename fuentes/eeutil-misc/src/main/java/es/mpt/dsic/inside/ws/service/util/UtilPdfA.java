@@ -21,11 +21,10 @@ import es.mpt.dsic.inside.pdf.PdfUtils;
 import es.mpt.dsic.inside.utils.file.FileUtil;
 import es.mpt.dsic.inside.ws.service.exception.InSideException;
 import es.mpt.dsic.inside.ws.service.model.EstadoInfo;
-import org.verapdf.pdfa.Foundries;
-import org.verapdf.pdfa.PDFAParser;
-import org.verapdf.pdfa.PDFAValidator;
-import org.verapdf.pdfa.flavours.PDFAFlavour;
-import org.verapdf.pdfa.results.ValidationResult;
+import org.apache.pdfbox.preflight.PreflightDocument;
+import org.apache.pdfbox.preflight.ValidationResult;
+import org.apache.pdfbox.preflight.parser.PreflightParser;
+import javax.mail.util.ByteArrayDataSource;
 
 public class UtilPdfA {
 
@@ -120,22 +119,17 @@ public class UtilPdfA {
 
   public Boolean isPDFA(byte[] data, String password, Integer level) throws InSideException {
     try {
-      // Inicializar veraPDF
-      // VeraGreenfieldFoundryProvider.initialise();
+      ByteArrayDataSource dataSource = new ByteArrayDataSource(data, "application/pdf");
+      PreflightParser parser = new PreflightParser(dataSource);
+      parser.parse();
 
-      PDFAFlavour flavourAUsar = PDFAFlavour.PDFA_2_B;
-
-      try (PDFAParser parser =
-          Foundries.defaultInstance().createParser(new ByteArrayInputStream(data), flavourAUsar)) {
-
-        PDFAValidator validator = Foundries.defaultInstance().createValidator(flavourAUsar, false);
-
-        ValidationResult result = validator.validate(parser);
-
-        return result.isCompliant();
+      try (PreflightDocument document = parser.getPreflightDocument()) {
+        document.validate();
+        ValidationResult result = document.getResult();
+        return result.isValid();
       }
     } catch (Exception e) {
-      logger.error("Error validando PDF/A con veraPDF", e);
+      logger.error("Error validando PDF/A con PDFBox Preflight", e);
       return false;
     }
   }
