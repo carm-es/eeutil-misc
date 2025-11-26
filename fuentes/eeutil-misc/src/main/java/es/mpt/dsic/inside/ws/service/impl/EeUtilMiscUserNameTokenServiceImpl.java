@@ -269,9 +269,10 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
           XMPMetadata xmp = XMPMetadata.createXMPMetadata();
 
           // Configurar información PDF/A
-          PDFAIdentificationSchema pdfaid = xmp.createAndAddPDFAIdentificationSchema();
+          PDFAIdentificationSchema pdfaid = new PDFAIdentificationSchema(xmp);
           pdfaid.setConformance(conformance);
           pdfaid.setPart(Integer.parseInt(part));
+          xmp.addSchema(pdfaid);
 
           // Configurar Dublin Core
           DublinCoreSchema dc = xmp.createAndAddDublinCoreSchema();

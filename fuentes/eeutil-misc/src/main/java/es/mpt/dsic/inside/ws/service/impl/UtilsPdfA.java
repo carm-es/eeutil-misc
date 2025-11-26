@@ -58,16 +58,20 @@ public class UtilsPdfA {
         StringBuilder detalles = new StringBuilder();
         detalles.append("Conformidad: ").append(result.isCompliant()).append(". ");
         detalles.append("Total de checks: ").append(result.getTotalAssertions()).append(". ");
-        detalles.append("Checks fallidos: ").append(result.getFailedChecks()).append(".");
 
         if (!result.isCompliant() && result.getTestAssertions() != null) {
+          int failedCount = 0;
           detalles.append(" Primeros errores: ");
-          result.getTestAssertions().stream()
-              .filter(assertion -> assertion.getStatus().toString().equals("FAILED")).limit(3)
-              .forEach(assertion -> {
+          for (org.verapdf.pdfa.results.TestAssertion assertion : result.getTestAssertions()) {
+            if (assertion.getStatus() == org.verapdf.pdfa.results.TestAssertion.Status.FAILED) {
+              failedCount++;
+              if (failedCount <= 3) {
                 detalles.append(assertion.getRuleId()).append(": ").append(assertion.getMessage())
                     .append("; ");
-              });
+              }
+            }
+          }
+          detalles.append("Checks fallidos: ").append(failedCount).append(".");
         }
 
         return detalles.toString();
