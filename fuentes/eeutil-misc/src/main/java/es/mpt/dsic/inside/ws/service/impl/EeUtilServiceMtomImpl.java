@@ -17,6 +17,8 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.jws.WebService;
 import javax.mail.util.ByteArrayDataSource;
+
+import es.mpt.dsic.inside.ws.service.util.PdfCompliance;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -87,111 +89,22 @@ public class EeUtilServiceMtomImpl implements EeUtilServiceMtom {
 
 
       // Determinar el flavour de PDF/A objetivo
-      String flavourObjetivo = UtilsPdfA.mapearFlavourPDFBox(nivelCompilacion);
+      PdfCompliance flavourObjetivo = PdfCompliance.getCompliance(nivelCompilacion);
 
       if (!isPDFA) {
         logger.debug("El documento no es PDF/A, iniciando conversión...");
 
-        try (PDDocument document = PDDocument.load(pdfOriginal, docEntrada.getPassword())) {
+        retorno.setMime("application/pdf");
+        byte[] pdfConverted = UtilsPdfA
+            .convertToPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)), flavourObjetivo);
 
-          // Obtener número de páginas para registro
-          int numberPages = document.getNumberOfPages();
-          aplicacionConversionService.saveAplicacionConversionInfo("EEUTILS-CARM", numberPages);
+        DataSource dataSource = new ByteArrayDataSource(pdfConverted, "application/pdf");
 
-          // Determinar nivel de conformidad
-          String part = "2";
-          String conformance = "B";
+        retorno.setContenido(new DataHandler(dataSource));
 
-          if (flavourObjetivo != null && flavourObjetivo.contains("1A")) {
-            part = "1";
-            conformance = "A";
-          } else if (flavourObjetivo != null && flavourObjetivo.contains("1B")) {
-            part = "1";
-            conformance = "B";
-          }
-
-          // Crear esquema de metadatos XMP para PDF/A
-          XMPMetadata xmp = XMPMetadata.createXMPMetadata();
-
-          // Configurar información PDF/A
-          PDFAIdentificationSchema pdfaid = new PDFAIdentificationSchema(xmp);
-          pdfaid.setConformance(conformance);
-          pdfaid.setPart(Integer.parseInt(part));
-          xmp.addSchema(pdfaid);
-
-          // Configurar Dublin Core
-          DublinCoreSchema dc = xmp.createAndAddDublinCoreSchema();
-          dc.setTitle("Documento convertido a PDF/A");
-          dc.addCreator("Sistema de Conversión");
-          dc.addDate(Calendar.getInstance());
-
-          // Serializar y establecer metadatos
-          ByteArrayOutputStream xmpOut = new ByteArrayOutputStream();
-          new XmpSerializer().serialize(xmp, xmpOut, true);
-
-          PDMetadata metadata = new PDMetadata(document);
-          metadata.importXMPMetadata(xmpOut.toByteArray());
-          document.getDocumentCatalog().setMetadata(metadata);
-
-          // Configurar OutputIntent para PDF/A (perfil de color sRGB)
-          InputStream colorProfile = getClass().getResourceAsStream("/sRGB.icc");
-          if (colorProfile == null) {
-            // Alternativa: buscar en el classpath
-            colorProfile =
-                Thread.currentThread().getContextClassLoader().getResourceAsStream("sRGB.icc");
-          }
-
-          if (colorProfile != null) {
-            PDOutputIntent outputIntent = new PDOutputIntent(document, colorProfile);
-            outputIntent.setInfo("sRGB IEC61966-2.1");
-            outputIntent.setOutputCondition("sRGB IEC61966-2.1");
-            outputIntent.setOutputConditionIdentifier("sRGB IEC61966-2.1");
-            outputIntent.setRegistryName("http://www.color.org");
-            document.getDocumentCatalog().addOutputIntent(outputIntent);
-          } else {
-            logger.warn(
-                "No se encontró el perfil de color sRGB.icc, la conversión puede no ser válida");
-          }
-
-          // Marcar para uso tagged (para PDF/A-1a, 2a, 3a)
-          if ("A".equalsIgnoreCase(conformance)) {
-            document.getDocumentCatalog().setMarkInfo(document.getDocumentCatalog().getMarkInfo());
-          }
-
-          // Guardar documento convertido en archivo temporal
-          File pdfConvertido = File.createTempFile("pdfa_converted_", ".pdf");
-          document.save(pdfConvertido);
-
-          // Validar con PDFBox Preflight
-          boolean conversionExitosa = UtilsPdfA.validarConPDFBox(pdfConvertido, flavourObjetivo);
-
-          if (conversionExitosa) {
-            logger.debug("Conversión a PDF/A exitosa y validada");
-            retorno.setMime("application/pdf");
-            DataSource dataSource = new ByteArrayDataSource(
-                IOUtils.toByteArray(new FileInputStream(pdfConvertido)), "application/pdf");
-            retorno.setContenido(new DataHandler(dataSource));
-
-          } else {
-            logger.error("La conversión no cumple con el estándar PDF/A requerido");
-            // Obtener detalles de validación
-            String detallesError =
-                UtilsPdfA.obtenerDetallesValidacion(pdfConvertido, flavourObjetivo);
-            EstadoInfo estadoInfo = new EstadoInfo();
-            estadoInfo.setDescripcion(
-                "La conversión a PDF/A no cumple con el estándar: " + detallesError);
-            throw new InSideException("Error al convertir a PDF/A", estadoInfo);
-          }
-
-          // Limpiar archivo temporal
-          pdfConvertido.delete();
-
-        } catch (Exception e) {
-          logger.error("Error procesando el PDF", e);
-          EstadoInfo estadoInfo = new EstadoInfo();
-          estadoInfo.setDescripcion("Error procesando el PDF: " + e.getMessage());
-          throw new InSideException("Error al convertir a PDF/A", estadoInfo);
-        }
+        int numberPages = utilPdfA.getPdfNumbersPages(pdfOriginal);
+        aplicacionConversionService.saveAplicacionConversionInfo(info.getIdApplicacion(),
+            numberPages);
       } else {
         retorno.setMime("application/pdf");
         DataSource dataSource = new ByteArrayDataSource(

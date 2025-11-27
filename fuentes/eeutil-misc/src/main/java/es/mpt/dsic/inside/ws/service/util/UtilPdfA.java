@@ -16,15 +16,10 @@ import java.io.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.lowagie.text.pdf.PdfReader;
-import es.mpt.dsic.inside.config.EeutilApplicationDataConfig;
 import es.mpt.dsic.inside.pdf.PdfUtils;
 import es.mpt.dsic.inside.utils.file.FileUtil;
 import es.mpt.dsic.inside.ws.service.exception.InSideException;
 import es.mpt.dsic.inside.ws.service.model.EstadoInfo;
-import org.apache.pdfbox.preflight.PreflightDocument;
-import org.apache.pdfbox.preflight.ValidationResult;
-import org.apache.pdfbox.preflight.parser.PreflightParser;
-import javax.mail.util.ByteArrayDataSource;
 
 public class UtilPdfA {
 
@@ -118,20 +113,16 @@ public class UtilPdfA {
   }
 
   public Boolean isPDFA(byte[] data, String password, Integer level) throws InSideException {
-    try {
-      ByteArrayDataSource dataSource = new ByteArrayDataSource(data, "application/pdf");
-      PreflightParser parser = new PreflightParser(dataSource);
-      parser.parse();
-
-      try (PreflightDocument document = parser.getPreflightDocument()) {
-        document.validate();
-        ValidationResult result = document.getResult();
-        return result.isValid();
-      }
-    } catch (Exception e) {
-      logger.error("Error validando PDF/A con PDFBox Preflight", e);
+    if (null == data) {
       return false;
     }
+    PdfCompliance checkLevel = PdfCompliance.DEFAULT_FORMAT;
+    if (null != level) {
+      checkLevel = PdfCompliance.getCompliance(level);
+    }
+    PdfCompliance documentLevel = PdfCompliance.detectPDFAType(data);
+
+    return (documentLevel.isPdfA()) && (documentLevel == checkLevel);
   }
 
   public int getPdfNumbersPages(File f) throws InSideException, IOException {
@@ -159,17 +150,10 @@ public class UtilPdfA {
   }
 
   public boolean validateSimple(byte[] data) {
-    try {
-      boolean isCompliant = isCompliant = isPDFA(data, "none", 1);
-      // Print result
-      System.out.printf("Document is %scompliant with the PDF/A-2b standard.\n",
-          isCompliant ? "" : "not ");
-      return isCompliant;
-
-    } catch (InSideException e) {
-      logger.error("Comprobando validando PDF/A", e);
+    if (null == data) {
+      return false;
     }
-    return false;
+    return PdfCompliance.detectPDFAType(data).isPdfA();
   }
 
 }

@@ -1,89 +1,116 @@
 package es.mpt.dsic.inside.ws.service.impl;
 
+import es.mpt.dsic.inside.ws.service.util.PdfCompliance;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.pdfbox.preflight.PreflightDocument;
-import org.apache.pdfbox.preflight.ValidationResult;
-import org.apache.pdfbox.preflight.parser.PreflightParser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.DublinCoreSchema;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.schema.XMPBasicSchema;
+import org.apache.xmpbox.type.BadFieldValueException;
+import org.apache.xmpbox.xml.XmpSerializer;
 
-import java.io.File;
-import java.io.FileInputStream;
+import javax.xml.transform.TransformerException;
+import java.io.*;
+import java.util.GregorianCalendar;
+
 
 public class UtilsPdfA {
   protected final static Log logger = LogFactory.getLog(UtilsPdfA.class);
 
-  /**
-   * Valida un PDF contra el estándar PDF/A usando PDFBox Preflight
-   */
-  public static boolean validarConPDFBox(File pdfFile, String flavour) {
+  private UtilsPdfA() {}
+
+  public static byte[] convertToPDFA(byte[] inputFile, PdfCompliance compliance)
+      throws IOException {
+    PDDocument document = null;
+    InputStream colorProfile = null;
+
     try {
-      PreflightParser parser = new PreflightParser(pdfFile);
-      parser.parse();
+      // Cargar el documento PDF
+      document = PDDocument.load(inputFile);
 
-      try (PreflightDocument document = parser.getPreflightDocument()) {
-        document.validate();
-        ValidationResult result = document.getResult();
-        return result.isValid();
+      // Crear el catálogo del documento
+      PDDocumentCatalog catalog = document.getDocumentCatalog();
+
+      // Agregar metadatos XMP para PDF/A-3
+      addXMPMetadata(document, compliance);
+
+      // Agregar perfil de color ICC (sRGB)
+      UtilsPdfA dummy = new UtilsPdfA();
+      colorProfile = dummy.getClass()
+          .getResourceAsStream("/org/apache/pdfbox/resources/icc/ISOcoated_v2_300_bas.icc");
+      if (colorProfile == null) {
+        // Intenta cargar desde el classpath alternativo
+        colorProfile = PDDocument.class
+            .getResourceAsStream("/org/apache/pdfbox/resources/icc/ISOcoated_v2_300_bas.icc");
       }
-    } catch (Exception e) {
-      logger.error("Error validando PDF/A con PDFBox Preflight", e);
-      return false;
-    }
-  }
 
-  /**
-   * Obtiene detalles de los errores de validación
-   */
-  public static String obtenerDetallesValidacion(File pdfFile, String flavour) {
-    try {
-      PreflightParser parser = new PreflightParser(pdfFile);
-      parser.parse();
-
-      try (PreflightDocument document = parser.getPreflightDocument()) {
-        document.validate();
-        ValidationResult result = document.getResult();
-
-        StringBuilder detalles = new StringBuilder();
-        detalles.append("Conformidad: ").append(result.isValid()).append(". ");
-
-        if (!result.isValid() && result.getErrorsList() != null) {
-          detalles.append("Errores: ").append(result.getErrorsList().size()).append(". ");
-          int count = 0;
-          for (org.apache.pdfbox.preflight.ValidationResult.ValidationError error : result
-              .getErrorsList()) {
-            if (count < 3) {
-              detalles.append(error.getErrorCode()).append(": ").append(error.getDetails())
-                  .append("; ");
-            }
-            count++;
-          }
-        }
-
-        return detalles.toString();
+      if (colorProfile != null) {
+        PDOutputIntent outputIntent = new PDOutputIntent(document, colorProfile);
+        outputIntent.setInfo("sRGB IEC61966-2.1");
+        outputIntent.setOutputCondition("sRGB IEC61966-2.1");
+        outputIntent.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+        outputIntent.setRegistryName("http://www.color.org");
+        catalog.addOutputIntent(outputIntent);
       }
-    } catch (Exception e) {
-      return "No se pudieron obtener detalles: " + e.getMessage();
+
+      // Marcar como PDF/A-3
+      catalog.setVersion("1.7");
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      document.save(baos);
+      return baos.toByteArray();
+
+    } catch (BadFieldValueException | TransformerException e) {
+      throw new IOException("Error al crear metadatos XMP", e);
+    } finally {
+      if (document != null) {
+        document.close();
+      }
+      if (colorProfile != null) {
+        colorProfile.close();
+      }
     }
   }
 
-  /**
-   * Mapea el nivel de compilación al flavour de PDFBox
-   */
-  public static String mapearFlavourPDFBox(Object nivelCompilacion) {
-    if (nivelCompilacion == null) {
-      return "PDFA_1_B";
-    }
+  private static void addXMPMetadata(PDDocument document, PdfCompliance compliance)
+      throws BadFieldValueException, TransformerException, IOException {
 
-    String nivel = nivelCompilacion.toString().toUpperCase();
+    XMPMetadata xmp = XMPMetadata.createXMPMetadata();
 
-    // PDFBox Preflight principalmente soporta PDF/A-1b
-    if (nivel.contains("1A") || nivel.contains("1_A")) {
-      return "PDFA_1_A";
-    } else if (nivel.contains("1B") || nivel.contains("1_B")) {
-      return "PDFA_1_B";
-    }
+    // Schema PDF/A Identification
+    PDFAIdentificationSchema pdfaid = xmp.createAndAddPDFAIdentificationSchema();
+    pdfaid.setPart(compliance.getPart());
+    pdfaid.setConformance(compliance.getConformance());
 
-    // Por defecto PDF/A-1B (el más soportado por PDFBox Preflight)
-    return "PDFA_1_B";
+    // Schema Dublin Core
+    DublinCoreSchema dc = xmp.createAndAddDublinCoreSchema();
+    dc.setTitle("Conversión EEUTILS");
+    dc.addCreator("EEUTILS - CARM");
+    dc.setDescription("Documento convertido a PDF/A (" + compliance + ")");
+
+    // Schema XMP Basic
+    XMPBasicSchema xmpBasic = xmp.createAndAddXMPBasicSchema();
+    xmpBasic.setCreateDate(GregorianCalendar.getInstance());
+    xmpBasic.setModifyDate(GregorianCalendar.getInstance());
+    xmpBasic.setMetadataDate(GregorianCalendar.getInstance());
+    xmpBasic.setCreatorTool("Apache PDFBox");
+
+    // Serializar XMP a XML
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    XmpSerializer serializer = new XmpSerializer();
+    serializer.serialize(xmp, baos, true);
+
+    // Crear metadata stream
+    PDMetadata metadata = new PDMetadata(document);
+    metadata.importXMPMetadata(baos.toByteArray());
+
+    // Agregar metadata al catálogo
+    document.getDocumentCatalog().setMetadata(metadata);
   }
+
 }
