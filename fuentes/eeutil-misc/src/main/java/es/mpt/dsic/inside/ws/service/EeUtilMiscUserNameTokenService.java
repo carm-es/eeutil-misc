@@ -56,16 +56,16 @@ public interface EeUtilMiscUserNameTokenService {
   @WebMethod(operationName = "comprobarPDFA", action = "urn:comprobarPDFA")
   @WebResult(name = "esPdfA", partName = "esPdfA")
   public Boolean comprobarPDFA(
-      @WebParam(name = "DocumentoEntrada") @XmlElement(required = true,
-          name = "DocumentoEntrada") DocumentoEntrada docEntrada,
+      @WebParam(name = "DocumentoEntrada")
+      @XmlElement(required = true, name = "DocumentoEntrada") DocumentoEntrada docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 
   @WebMethod(operationName = "convertirPDFA", action = "urn:convertirPDFA")
   @WebResult(name = "PdfSalida", partName = "PdfSalida")
   public PdfSalida convertirPDFA(
-      @WebParam(name = "DocumentoEntrada") @XmlElement(required = true,
-          name = "DocumentoEntrada") DocumentoEntrada docEntrada,
+      @WebParam(name = "DocumentoEntrada")
+      @XmlElement(required = true, name = "DocumentoEntrada") DocumentoEntrada docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 

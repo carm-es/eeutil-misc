@@ -30,44 +30,44 @@ public interface EeUtilService {
   @WebMethod(operationName = "postProcesarFirma", action = "urn:postProcesarFirma")
   @WebResult(name = "FirmaProcesada", partName = "FirmaProcesada")
   public byte[] postProcesarFirma(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "Firma") @XmlElement(required = true, name = "Firma") byte[] firma)
       throws InSideException;
 
   @WebMethod(operationName = "convertirTCNAPdf", action = "urn:convertirTCNAPdf")
   @WebResult(name = "contenidoInfo", partName = "contenidoInfo")
   public ContenidoInfo convertirTCNAPdf(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "TCNInfo") @XmlElement(required = true, name = "TCNInfo") TCNInfo tcnInfo)
       throws InSideException;
 
   @WebMethod(operationName = "visualizarFacturae", action = "urn:visualizarFacturae")
   @WebResult(name = "FacturaProcesada", partName = "FacturaProcesada")
   public SalidaVisualizacion visualizarFacturae(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "Factura") @XmlElement(required = true, name = "Factura") byte[] factura,
       @XmlElement(required = false, name = "Version") String version) throws InSideException;
 
   @WebMethod(operationName = "comprobarPDFA", action = "urn:comprobarPDFA")
   @WebResult(name = "esPdfA", partName = "esPdfA")
   public Boolean comprobarPDFA(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "DocumentoEntrada") @XmlElement(required = true,
-          name = "DocumentoEntrada") DocumentoEntrada docEntrada,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "DocumentoEntrada")
+      @XmlElement(required = true, name = "DocumentoEntrada") DocumentoEntrada docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 
   @WebMethod(operationName = "convertirPDFA", action = "urn:convertirPDFA")
   @WebResult(name = "PdfSalida", partName = "PdfSalida")
   public PdfSalida convertirPDFA(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "DocumentoEntrada") @XmlElement(required = true,
-          name = "DocumentoEntrada") DocumentoEntrada docEntrada,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "DocumentoEntrada")
+      @XmlElement(required = true, name = "DocumentoEntrada") DocumentoEntrada docEntrada,
       @XmlElement(required = false, name = "nivelCompilacion") Integer nivelCompilacion)
       throws InSideException;
 
@@ -76,8 +76,8 @@ public interface EeUtilService {
   @WebMethod(operationName = "visualizarFacturaePDF", action = "urn:visualizarFacturaePDF")
   @WebResult(name = "FacturaProcesada", partName = "FacturaProcesada")
   public SalidaVisualizacion visualizarFacturaePDF(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "Factura") @XmlElement(required = true, name = "Factura") byte[] factura,
       @XmlElement(required = false, name = "Version") String version) throws InSideException;
 

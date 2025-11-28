@@ -11,12 +11,8 @@
 
 package es.mpt.dsic.inside.ws.service.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.Calendar;
 import javax.annotation.Resource;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
@@ -31,16 +27,23 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.WebServiceContext;
+
+import es.mpt.dsic.inside.ws.service.util.PdfCompliance;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.DublinCoreSchema;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.xml.XmpSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.pdftools.NativeLibrary;
-import com.pdftools.pdf2pdf.Pdf2PdfAPI;
 import es.mpt.dsic.eeutil.operFirma.consumer.impl.ConsumerEeutilOperFirmaImpl;
 import es.mpt.dsic.inside.config.EeutilApplicationDataConfig;
 import es.mpt.dsic.inside.pdf.converter.HtmlConverter;
@@ -64,6 +67,8 @@ import es.mpt.dsic.inside.ws.service.model.pdf.DocumentoEntrada;
 import es.mpt.dsic.inside.ws.service.model.pdf.PdfSalida;
 import es.mpt.dsic.inside.ws.service.util.UtilFacturae;
 import es.mpt.dsic.inside.ws.service.util.UtilPdfA;
+
+
 
 @Service("eeUtilMiscUserNameTokenService")
 @WebService(endpointInterface = "es.mpt.dsic.inside.ws.service.EeUtilMiscUserNameTokenService")
@@ -216,6 +221,7 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
     return facturaPDFPost;
   }
 
+
   @Override
   public PdfSalida convertirPDFA(DocumentoEntrada docEntrada, Integer nivelCompilacion)
       throws InSideException {
@@ -236,38 +242,21 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
 
       Boolean isPDFA = utilPdfA.isPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
           docEntrada.getPassword(), nivelCompilacion);
+      // Determinar el flavour de PDF/A objetivo
+      PdfCompliance flavourObjetivo = PdfCompliance.getCompliance(nivelCompilacion);
 
-      // Validate document
       if (!isPDFA) {
-        Pdf2PdfAPI.setLicenseKey(utilPdfA.getConverterKey());
+        logger.debug("El documento no es PDF/A, iniciando conversión...");
 
-        Pdf2PdfAPI api = new Pdf2PdfAPI();
-        if (nivelCompilacion == null) {
-          api.setCompliance(NativeLibrary.COMPLIANCE.ePDFA2b);
-        } else {
-          api.setCompliance(nivelCompilacion);
-        }
-        api.setReportDetails(utilPdfA.isConverterReportDetails());
-        api.setReportSummary(utilPdfA.isConverterReportSummary());
-        api.setSubsetFonts(utilPdfA.isConverterSubsetFonts());
-        api.setPostAnalyze(utilPdfA.isConverterPostAnalyze());
+        retorno.setMime("application/pdf");
+        retorno.setContenido(UtilsPdfA
+            .convertToPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)), flavourObjetivo));
 
         int numberPages = utilPdfA.getPdfNumbersPages(pdfOriginal);
         // insercion en bbdd
         aplicacionConversionService.saveAplicacionConversionInfo(
             credentialUtil.getCredentialEeutilUserToken(wsContext).getIdApplicacion(), numberPages);
 
-        boolean convert = api.convertMem2(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
-            docEntrada.getPassword());
-
-        if (convert) {
-          retorno.setMime("application/pdf");
-          retorno.setContenido(api.getPDF());
-        } else {
-          EstadoInfo estadoInfo = new EstadoInfo();
-          estadoInfo.setDescripcion(new String(api.getLog(), XMLUtil.UTF8_CHARSET));
-          throw new InSideException("Error al convertir a PDF/A: ", estadoInfo);
-        }
       } else {
         retorno.setMime("application/pdf");
         retorno.setContenido(IOUtils.toByteArray(new FileInputStream(pdfOriginal)));
@@ -304,4 +293,6 @@ public class EeUtilMiscUserNameTokenServiceImpl implements EeUtilMiscUserNameTok
       throws InSideException {
     return utilPdfA.isPDFA(docEntrada.getContenido(), docEntrada.getPassword(), nivelCompilacion);
   }
+
+
 }

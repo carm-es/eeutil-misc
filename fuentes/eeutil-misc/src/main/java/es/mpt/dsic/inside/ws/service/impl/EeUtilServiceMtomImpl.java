@@ -11,21 +11,26 @@
 
 package es.mpt.dsic.inside.ws.service.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.Calendar;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.jws.WebService;
 import javax.mail.util.ByteArrayDataSource;
+
+import es.mpt.dsic.inside.ws.service.util.PdfCompliance;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.DublinCoreSchema;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.xml.XmpSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.pdftools.NativeLibrary;
-import com.pdftools.pdf2pdf.Pdf2PdfAPI;
 import es.mpt.dsic.inside.pdf.converter.PdfConverter;
 import es.mpt.dsic.inside.pdf.exception.PdfConversionException;
 import es.mpt.dsic.inside.security.context.AplicacionContext;
@@ -40,6 +45,7 @@ import es.mpt.dsic.inside.ws.service.model.EstadoInfo;
 import es.mpt.dsic.inside.ws.service.model.pdf.DocumentoEntradaMtom;
 import es.mpt.dsic.inside.ws.service.model.pdf.PdfSalidaMtom;
 import es.mpt.dsic.inside.ws.service.util.UtilPdfA;
+
 
 @Service("eeUtilServiceMtom")
 @WebService(endpointInterface = "es.mpt.dsic.inside.ws.service.EeUtilServiceMtom")
@@ -81,37 +87,24 @@ public class EeUtilServiceMtomImpl implements EeUtilServiceMtom {
       Boolean isPDFA = utilPdfA.isPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
           docEntrada.getPassword(), nivelCompilacion);
 
-      if (!isPDFA) {
-        Pdf2PdfAPI.setLicenseKey(utilPdfA.getConverterKey());
 
-        Pdf2PdfAPI api = new Pdf2PdfAPI();
-        if (nivelCompilacion == null) {
-          api.setCompliance(NativeLibrary.COMPLIANCE.ePDFA2b);
-        } else {
-          api.setCompliance(nivelCompilacion);
-        }
-        api.setReportDetails(utilPdfA.isConverterReportDetails());
-        api.setReportSummary(utilPdfA.isConverterReportSummary());
-        api.setSubsetFonts(utilPdfA.isConverterSubsetFonts());
-        api.setPostAnalyze(utilPdfA.isConverterPostAnalyze());
+      // Determinar el flavour de PDF/A objetivo
+      PdfCompliance flavourObjetivo = PdfCompliance.getCompliance(nivelCompilacion);
+
+      if (!isPDFA) {
+        logger.debug("El documento no es PDF/A, iniciando conversión...");
+
+        retorno.setMime("application/pdf");
+        byte[] pdfConverted = UtilsPdfA
+            .convertToPDFA(IOUtils.toByteArray(new FileInputStream(pdfOriginal)), flavourObjetivo);
+
+        DataSource dataSource = new ByteArrayDataSource(pdfConverted, "application/pdf");
+
+        retorno.setContenido(new DataHandler(dataSource));
 
         int numberPages = utilPdfA.getPdfNumbersPages(pdfOriginal);
-        // insercion en bbdd
         aplicacionConversionService.saveAplicacionConversionInfo(info.getIdApplicacion(),
             numberPages);
-
-        boolean convert = api.convertMem2(IOUtils.toByteArray(new FileInputStream(pdfOriginal)),
-            docEntrada.getPassword());
-
-        if (convert) {
-          retorno.setMime("application/pdf");
-          DataSource dataSource = new ByteArrayDataSource(api.getPDF(), "application/pdf");
-          retorno.setContenido(new DataHandler(dataSource));
-        } else {
-          EstadoInfo estadoInfo = new EstadoInfo();
-          estadoInfo.setDescripcion(new String(api.getLog(), XMLUtil.UTF8_CHARSET));
-          throw new InSideException("Error al convertir a PDF/A: ", estadoInfo);
-        }
       } else {
         retorno.setMime("application/pdf");
         DataSource dataSource = new ByteArrayDataSource(

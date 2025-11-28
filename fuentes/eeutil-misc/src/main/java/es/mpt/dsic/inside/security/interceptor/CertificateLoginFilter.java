@@ -28,7 +28,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
@@ -105,7 +105,7 @@ public class CertificateLoginFilter extends AbstractAuthenticationProcessingFilt
           UsuarioCredencialInfo usuario = credentialnfoService.getCredentialInfo(id);
           if (usuario != null) {
             List<GrantedAuthority> roles = new ArrayList<GrantedAuthority>();
-            roles.add(new GrantedAuthorityImpl("USER_ROLE"));
+            roles.add(new SimpleGrantedAuthority("USER_ROLE"));
             return new UserAuthentication(usuario.getNif(), null, roles, "1", usuario.getNif());
           }
 

@@ -11,16 +11,11 @@
 
 package es.mpt.dsic.inside.ws.service.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.lowagie.text.pdf.PdfReader;
-import com.pdftools.NativeLibrary;
-import com.pdftools.pdfvalidator.PdfValidatorAPI;
-import es.mpt.dsic.inside.config.EeutilApplicationDataConfig;
 import es.mpt.dsic.inside.pdf.PdfUtils;
 import es.mpt.dsic.inside.utils.file.FileUtil;
 import es.mpt.dsic.inside.ws.service.exception.InSideException;
@@ -43,21 +38,7 @@ public class UtilPdfA {
   private String validatorKey;
   private int validatorReportingLevel;
 
-  public void configure() {
-    try {
-      // converter
-      logger.warn("Configurando PDF/A Converter, cargando libreria:"
-          + EeutilApplicationDataConfig.CONFIG_PATH + File.separator + converterLibrary);
-      System.load(EeutilApplicationDataConfig.CONFIG_PATH + File.separator + converterLibrary);
-
-      // validator
-      logger.warn("Configurando PDF/A Validator, cargando libreria:"
-          + EeutilApplicationDataConfig.CONFIG_PATH + File.separator + validatorLibrary);
-      System.load(EeutilApplicationDataConfig.CONFIG_PATH + File.separator + validatorLibrary);
-    } catch (UnsatisfiedLinkError e) {
-      logger.error("Error cargando libreria.\n" + e);
-    }
-  }
+  public void configure() {}
 
   public String getConverterLibrary() {
     return converterLibrary;
@@ -132,43 +113,16 @@ public class UtilPdfA {
   }
 
   public Boolean isPDFA(byte[] data, String password, Integer level) throws InSideException {
-    PdfValidatorAPI.setLicenseKey(getValidatorKey());
-
-    PdfValidatorAPI pdfValidator = new PdfValidatorAPI();
-    pdfValidator.setStopOnError(true);
-    pdfValidator.setReportingLevel(getValidatorReportingLevel());
-
-    if (password == null) {
-      password = "";
-    }
-
-    boolean validate = false;
-
-    if (level == null) {
-      validate = pdfValidator.open(data, password, NativeLibrary.COMPLIANCE.ePDFA2b);
-    } else {
-      validate = pdfValidator.open(data, password, level);
-    }
-
-    if (!validate) {
-      if (pdfValidator.getErrorCode() == NativeLibrary.ERRORCODE.PDF_E_PASSWORD) {
-        logger.error("Error al comprobar a PDF/A");
-        EstadoInfo estadoInfo = new EstadoInfo();
-        throw new InSideException("El documento esta cifrado. Password requirida.", estadoInfo);
-      } else {
-        logger.error("Error al comprobar a PDF/A");
-        EstadoInfo estadoInfo = new EstadoInfo();
-        throw new InSideException(
-            String.format("No es posible abrir el documento: 0x%08X", pdfValidator.getErrorCode()),
-            estadoInfo);
-      }
-    }
-
-    if (!pdfValidator.validate()) {
+    if (null == data) {
       return false;
-    } else {
-      return (pdfValidator.getErrorCode() != NativeLibrary.ERRORCODE.PDF_E_CONFORMANCE);
     }
+    PdfCompliance checkLevel = PdfCompliance.DEFAULT_FORMAT;
+    if (null != level) {
+      checkLevel = PdfCompliance.getCompliance(level);
+    }
+    PdfCompliance documentLevel = PdfCompliance.detectPDFAType(data);
+
+    return (documentLevel.isPdfA()) && (documentLevel == checkLevel);
   }
 
   public int getPdfNumbersPages(File f) throws InSideException, IOException {
@@ -196,48 +150,10 @@ public class UtilPdfA {
   }
 
   public boolean validateSimple(byte[] data) {
-    System.out.println("Licencia:" + getValidatorKey());
-    PdfValidatorAPI.setLicenseKey(getValidatorKey());
-
-    // Check license
-    if (!PdfValidatorAPI.getLicenseIsValid()) {
-      System.out.println("No valid license found:");
-    }
-
-    // Create object
-    PdfValidatorAPI doc = new PdfValidatorAPI();
-    doc.setStopOnError(true);
-    doc.setReportingLevel(0);
-
-    try {
-      // Open document, set PDF/A-2b compliance
-      if (!doc.open(data, "", NativeLibrary.COMPLIANCE.ePDFA2b)) {
-        if (doc.getErrorCode() == NativeLibrary.ERRORCODE.PDF_E_PASSWORD)
-          throw new Exception("Document is encrypted. Password required.");
-        else
-          throw new Exception("Unable to open document");
-      }
-
-      // Validate document
-      if (!doc.validate())
-        throw new Exception(
-            String.format("Unable to validate document (error 0x%08X).", doc.getErrorCode()));
-
-      boolean isCompliant = (doc.getErrorCode() != NativeLibrary.ERRORCODE.PDF_E_CONFORMANCE);
-
-      // Print result
-      System.out.printf("Document is %scompliant with the PDF/A-2b standard.\n",
-          isCompliant ? "" : "not ");
-    } catch (Throwable e) {
-      System.out.println(e.getMessage());
+    if (null == data) {
       return false;
-    } finally {
-      // Clean up
-      doc.close();
-      doc.destroyObject();
     }
-
-    return true;
+    return PdfCompliance.detectPDFAType(data).isPdfA();
   }
 
 }

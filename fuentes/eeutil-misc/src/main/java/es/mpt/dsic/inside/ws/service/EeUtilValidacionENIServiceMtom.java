@@ -32,33 +32,33 @@ public interface EeUtilValidacionENIServiceMtom {
   @WebMethod(operationName = "validarDocumentoENI", action = "urn:validarDocumentoENI")
   @WebResult(name = "Resultado", partName = "Resultado")
   public RespuestaValidacionENI validarDocumentoENI(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "documentoENI") @XmlElement(required = true,
-          name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
-      @WebParam(name = "versionENI") @XmlElement(required = false,
-          name = "versionENI") String versionENI,
-      @WebParam(name = "validaciones") @XmlElement(required = true,
-          name = "validaciones") Validaciones validaciones);
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "documentoENI")
+      @XmlElement(required = true, name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada,
+      @WebParam(name = "versionENI")
+      @XmlElement(required = false, name = "versionENI") String versionENI,
+      @WebParam(name = "validaciones")
+      @XmlElement(required = true, name = "validaciones") Validaciones validaciones);
 
   @WebMethod(operationName = "validarExpedienteENI", action = "urn:validarExpedienteENI")
   @WebResult(name = "Resultado", partName = "Resultado")
   public RespuestaValidacionENI validarExpedienteENI(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "expedienteENI") @XmlElement(required = true,
           name = "DocumentoEntradaMtom") DocumentoEntradaMtom expedienteENI,
-      @WebParam(name = "versionENI") @XmlElement(required = false,
-          name = "versionENI") String versionENI,
-      @WebParam(name = "validaciones") @XmlElement(required = true,
-          name = "validaciones") Validaciones validaciones);
+      @WebParam(name = "versionENI")
+      @XmlElement(required = false, name = "versionENI") String versionENI,
+      @WebParam(name = "validaciones")
+      @XmlElement(required = true, name = "validaciones") Validaciones validaciones);
 
 
   @WebMethod(operationName = "validarFirmaExpedienteENI", action = "urn:validarFirmaExpedienteENI")
   @WebResult(name = "Resultado", partName = "Resultado")
   public RespuestaValidacionENI validarFirmaExpedienteENI(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "expedienteENI") @XmlElement(required = true,
           name = "DocumentoEntradaMtom") DocumentoEntradaMtom expedienteENI);
 
@@ -66,22 +66,22 @@ public interface EeUtilValidacionENIServiceMtom {
   @WebMethod(operationName = "validarFirmaDocumentoENI", action = "urn:validarFirmaDocumentoENI")
   @WebResult(name = "Resultado", partName = "Resultado")
   public RespuestaValidacionENI validarFirmaDocumentoENI(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
-      @WebParam(name = "documentoENI") @XmlElement(required = true,
-          name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada);
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "documentoENI")
+      @XmlElement(required = true, name = "DocumentoEntradaMtom") DocumentoEntradaMtom docEntrada);
 
 
   @WebMethod(operationName = "validarExpedienteDocumentosENIZIP",
       action = "urn:validarExpedienteDocumentosENIZIP")
   @WebResult(name = "Resultado", partName = "Resultado")
   public RespuestaValidacionENI validarExpedienteDocumentosENIZIP(
-      @WebParam(name = "aplicacionInfo") @XmlElement(required = true,
-          name = "aplicacionInfo") ApplicationLogin info,
+      @WebParam(name = "aplicacionInfo")
+      @XmlElement(required = true, name = "aplicacionInfo") ApplicationLogin info,
       @WebParam(name = "expedienteENIConDocumentosENI") @XmlElement(required = true,
           name = "expedienteENIConDocumentosENI") DocumentoEntradaMtom docZipEntrada,
-      @WebParam(name = "versionENI") @XmlElement(required = false,
-          name = "versionENI") String versionENI,
+      @WebParam(name = "versionENI")
+      @XmlElement(required = false, name = "versionENI") String versionENI,
       @WebParam(name = "validacionesExpediente") @XmlElement(required = true,
           name = "validacionesExpediente") Validaciones validacionesExpediente,
       @WebParam(name = "validacionesDocumentos") @XmlElement(required = true,
