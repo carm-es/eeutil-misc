@@ -40,11 +40,23 @@
       <groupId>es.gob.aapp.eeutil</groupId>
       <artifactId>eeutil-pdf-conversion-igae</artifactId>
       <version>${version.eeutils-shared}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>es.gob.aapp.eeutil</groupId>
       <artifactId>eeutil-comunes</artifactId>
       <version>${version.eeutils-shared}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>es.gob.aapp.eeutil</groupId>
@@ -54,6 +66,10 @@
         <exclusion>
           <artifactId>slf4j-api</artifactId>
           <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -154,12 +170,12 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!--
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcmail-jdk15on</artifactId>
       <version>1.52</version>
     </dependency>
+    <!--
     <dependency>
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>
