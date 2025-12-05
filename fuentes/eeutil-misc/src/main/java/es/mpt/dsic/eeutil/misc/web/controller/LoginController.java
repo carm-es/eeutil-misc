@@ -80,7 +80,7 @@ public class LoginController {
     try {
 
       String claveServiceUrl = env.getProperty(ConstantsClave.PROPERTY_URL_CLAVE);
-      String excludedIdPList = env.getProperty(ConstantsClave.PROPERTY_EXCLUDED_IDPLIST);
+      String excludedIdPList = "none";
       String forcedIdP = env.getProperty(ConstantsClave.PROPERTY_FORCED_IDP);
 
       byte[] token = null;
@@ -97,6 +97,11 @@ public class LoginController {
         logger.debug(samlRequestXML);
       }
 
+      logger.info("IBM78M: Llamada a Cl@ve.... ");
+      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_EXCLUDED_IDPLIST + "]=[" + excludedIdPList);
+      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_FORCED_IDP + "]=[" + forcedIdP);
+      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_SAML_REQUEST + "]=[" + samlRequest);
+
       model.addAttribute("claveServiceUrl", claveServiceUrl);
       model.addAttribute(ConstantsClave.ATRIBUTO_EXCLUDED_IDPLIST, excludedIdPList);
       model.addAttribute(ConstantsClave.ATRIBUTO_FORCED_IDP, forcedIdP);
@@ -105,19 +110,20 @@ public class LoginController {
       return "login-redirect";
     } catch (InSideException e) {
       logger.error("Error: " + e.toString());
-      return "login?error=Error acceso a cl@ve";
-
+      model.addAttribute("error", "Error acceso a cl@ve");
+      return "login";
     } catch (Exception e) {
       logger.error("Error: " + e.toString());
-      return "login?error=Error acceso a cl@ve";
+      model.addAttribute("error", "Error acceso a cl@ve");
+      return "login";
     } finally {
       try {
         if (fin != null) {
           fin.close();
         }
       } catch (IOException e) {
-        logger.error("Error: " + e.toString());
-        return "login?error=Error acceso a cl@ve";
+        model.addAttribute("error", "Error acceso a cl@ve");
+        return "login";
       }
     }
   }
