@@ -97,11 +97,6 @@ public class LoginController {
         logger.debug(samlRequestXML);
       }
 
-      logger.info("IBM78M: Llamada a Cl@ve.... ");
-      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_EXCLUDED_IDPLIST + "]=[" + excludedIdPList);
-      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_FORCED_IDP + "]=[" + forcedIdP);
-      logger.info("IBM78M: [" + ConstantsClave.ATRIBUTO_SAML_REQUEST + "]=[" + samlRequest);
-
       model.addAttribute("claveServiceUrl", claveServiceUrl);
       model.addAttribute(ConstantsClave.ATRIBUTO_EXCLUDED_IDPLIST, excludedIdPList);
       model.addAttribute(ConstantsClave.ATRIBUTO_FORCED_IDP, forcedIdP);
