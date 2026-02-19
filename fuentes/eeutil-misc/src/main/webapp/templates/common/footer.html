@@ -10,7 +10,7 @@
 	<footer id="footer" class="mf-footer" th:fragment="footer">
     	<div class="mf-footer--content">
 
-			<p class="mf-footer--copy" th:utext="#{layout.footer.tittle}"></p>
+			<p class="mf-footer--copy" th:utext="#{layout.footer.tittle} + ' v' + ${versionmaven}"></p>
     	</div>
     </footer>
     

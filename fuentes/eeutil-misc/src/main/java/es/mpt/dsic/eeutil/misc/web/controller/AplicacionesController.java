@@ -1,14 +1,3 @@
-/*
- * Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed and may be used,
- * modified and redistributed under the terms of the European Public License (EUPL), either version
- * 1.1 or (at your option) any later version as soon as they are approved by the European
- * Commission. Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * more details. You should have received a copy of the EUPL1.1 license along with this program; if
- * not, you may find it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- */
-
 package es.mpt.dsic.eeutil.misc.web.controller;
 
 import java.util.ArrayList;
@@ -18,7 +7,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,20 +22,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import es.mpt.dsic.csvstorage.admin.model.CSVStorageException;
-import es.mpt.dsic.csvstorage.admin.model.CSVStorageException_Exception;
-import es.mpt.dsic.eeutil.csvbroker.admin.model.CSVBrokerException;
-import es.mpt.dsic.eeutil.inside.admin.model.InsideWSException;
+
 import es.mpt.dsic.eeutil.misc.web.util.MessageObject;
 import es.mpt.dsic.eeutil.misc.web.util.WebConstants;
 import es.mpt.dsic.inside.dao.EeutilDao;
 import es.mpt.dsic.inside.model.EeutilAplicacion;
 import es.mpt.dsic.inside.model.aplicacion.AplicacionObject;
 import es.mpt.dsic.inside.service.aplicacion.EeutilAplicacionService;
+import es.mpt.dsic.inside.utils.exception.EeutilException;
 import es.mpt.dsic.loadTables.model.UnidadOrganica;
 
 @Controller
-public class AplicacionesController {
+public class AplicacionesController extends BaseController {
+
+  private static final String CODIGO_UNIDAD_ORGANICA_PARAM = "codigoUnidadOrganica";
+
+  private static final String MENSAJE_USUARIO_PARAM = "mensajeUsuario";
+
+  private static final String IDENTIFICADOR_PARAM = "identificador";
+
+  private static final String VERSIONMAVEN_PARAM = "versionmaven";
 
   protected static final Log logger = LogFactory.getLog(AplicacionesController.class);
 
@@ -62,38 +59,32 @@ public class AplicacionesController {
       HttpServletRequest request, Locale locale) {
     ModelAndView retorno = null;
 
-    if (app.equalsIgnoreCase("Inside")) {
-      retorno = new ModelAndView("aplicaciones/listaInside");
-    }
 
     if (app.equalsIgnoreCase("Eeutil")) {
       retorno = new ModelAndView("aplicaciones/lista");
+      try {
+        retorno.addObject("data", eeutilAplicacionService.getAplicaciones(app));
+        retorno.addObject("app", app);
+
+        retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+
+        // para ordenar por key
+        Map<String, String> mapa = eeutilAplicacionService.getInfAdicional(app);
+        Map<String, String> treeMap = new TreeMap<>(mapa);
+
+        retorno.addObject("aditionalData", treeMap);
+
+        String[] option = new String[1];
+        option[0] = app;
+        retorno.addObject("titulo",
+            messageSource.getMessage("listaAplicaciones.title", option, locale));
+
+      } catch (EeutilException e) {
+        logger.error("Error al obtener aplicaciones");
+      }
     }
 
-    try {
-      retorno.addObject("data", eeutilAplicacionService.getAplicaciones(app));
-      retorno.addObject("app", app);
 
-      // para ordenar por key
-      Map<String, String> mapa = eeutilAplicacionService.getInfAdicional(app);
-      Map<String, String> treeMap = new TreeMap<String, String>(mapa);
-
-      retorno.addObject("aditionalData", treeMap);
-
-      String[] option = new String[1];
-      option[0] = app;
-      retorno.addObject("titulo",
-          messageSource.getMessage("listaAplicaciones.title", option, locale));
-
-    } catch (InsideWSException e) {
-      logger.error("Error al obtener aplicaciones");
-    } catch (CSVStorageException e) {
-      logger.error("Error al obtener aplicaciones");
-    } catch (CSVStorageException_Exception e) {
-      logger.error("Error al obtener aplicaciones");
-    } catch (CSVBrokerException e) {
-      logger.error("Error al obtener aplicaciones");
-    }
     return retorno;
   }
 
@@ -105,14 +96,14 @@ public class AplicacionesController {
 
       // damos de baja la aplicacion
       AplicacionObject aplicacion = new AplicacionObject();
-      aplicacion.setIdentificador(request.getParameter("identificador"));
+      aplicacion.setIdentificador(request.getParameter(IDENTIFICADOR_PARAM));
 
       EeutilAplicacion apli = (EeutilAplicacion) eeutilDao.getObjeto(EeutilAplicacion.class,
           aplicacion.getIdentificador());
       if (apli.isActiva()) {
-        aplicacion = eeutilAplicacionService.desactivar(app, aplicacion);
+        eeutilAplicacionService.desactivar(app, aplicacion);
       } else {
-        aplicacion = eeutilAplicacionService.activar(app, aplicacion);
+        eeutilAplicacionService.activar(app, aplicacion);
       }
 
       retorno = aplicacionesLista(app, request, locale);
@@ -122,11 +113,9 @@ public class AplicacionesController {
       retorno.addObject("titulo",
           messageSource.getMessage("listaAplicaciones.title", option, locale));
 
-    } catch (InsideWSException e) {
-      logger.error("Error al eliminar aplicacion");
-    } catch (CSVStorageException e) {
-      logger.error("Error al eliminar aplicacion");
-    } catch (CSVBrokerException e) {
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+
+    } catch (EeutilException e) {
       logger.error("Error al eliminar aplicacion");
     }
     return retorno;
@@ -140,30 +129,21 @@ public class AplicacionesController {
 
       // damos de baja la aplicacion
       AplicacionObject aplicacion = new AplicacionObject();
-      aplicacion.setIdentificador(request.getParameter("identificador"));
+      aplicacion.setIdentificador(request.getParameter(IDENTIFICADOR_PARAM));
       eeutilAplicacionService.eliminarAplicacion(app, aplicacion, locale);
 
       retorno = aplicacionesLista(app, request, locale);
 
       MessageObject mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_SUCCESS,
           messageSource.getMessage("listaAplicaciones.eliminar.ok", null, locale));
-      retorno.addObject("mensajeUsuario", mensaje);
+      retorno.addObject(MENSAJE_USUARIO_PARAM, mensaje);
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
 
-    } catch (InsideWSException e) {
+    } catch (EeutilException e) {
       logger.error("Error al eliminar aplicacion");
       retorno = aplicacionesLista(app, request, locale);
       MessageObject mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_ERROR, e.getMessage());
-      retorno.addObject("mensajeUsuario", mensaje);
-    } catch (CSVStorageException e) {
-      logger.error("Error al eliminar aplicacion");
-      retorno = aplicacionesLista(app, request, locale);
-      MessageObject mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_ERROR, e.getMessage());
-      retorno.addObject("mensajeUsuario", mensaje);
-    } catch (CSVBrokerException e) {
-      logger.error("Error al eliminar aplicacion");
-      retorno = aplicacionesLista(app, request, locale);
-      MessageObject mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_ERROR, e.getMessage());
-      retorno.addObject("mensajeUsuario", mensaje);
+      retorno.addObject(MENSAJE_USUARIO_PARAM, mensaje);
     }
 
     return retorno;
@@ -175,41 +155,58 @@ public class AplicacionesController {
     try {
       String app = request.getParameter("app");
 
+      String modoEscritura = request.getParameter("modoEscritura");
+
+      MessageObject mensaje = null;
+
       // damos de baja la aplicacion
       AplicacionObject aplicacion = convertToObject(request);
 
-      MessageObject mensaje = null;
-      if (aplicacion != null) {
-        aplicacion = eeutilAplicacionService.altaAplicacion(app, aplicacion);
-        mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_SUCCESS,
-            messageSource.getMessage("listaAplicaciones.alta.guardar.ok", null, locale));
-      } else {
-        mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_WARNING,
-            messageSource.getMessage("error.msg.datosNoValidos", null, locale));
-      }
-      retorno = aplicacionesLista(app, request, locale);
-      retorno.addObject("mensajeUsuario", mensaje);
+      if (modoEscritura != null && "alta".equals(modoEscritura)) {
+        // Si estamos en un modo alta, validamos que no exista ya la aplicacion de eeutils.
+        EeutilAplicacion appEeutils = eeutilAplicacionService
+            .getAplicacionEEUTIL(aplicacion != null ? aplicacion.getIdentificador() : null);
 
-    } catch (InsideWSException e) {
-      logger.error("Error crear aplicacion");
-    } catch (CSVStorageException e) {
-      logger.error("Error crear aplicacion");
-    } catch (CSVBrokerException e) {
+        if (appEeutils != null) {
+          mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_WARNING,
+              messageSource.getMessage("error.msg.datosNoValidos", null, locale));
+          retorno = aplicacionesLista(app, request, locale);
+          retorno.addObject(MENSAJE_USUARIO_PARAM, mensaje);
+        }
+
+      }
+      if (retorno == null) {
+        if (aplicacion != null) {
+          eeutilAplicacionService.altaAplicacion(app, aplicacion);
+          mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_SUCCESS,
+              messageSource.getMessage("listaAplicaciones.alta.guardar.ok", null, locale));
+        } else {
+          mensaje = new MessageObject(WebConstants.MESSAGE_LEVEL_WARNING,
+              messageSource.getMessage("error.msg.datosNoValidos", null, locale));
+        }
+
+      }
+
+      retorno = aplicacionesLista(app, request, locale);
+      retorno.addObject(MENSAJE_USUARIO_PARAM, mensaje);
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+
+    } catch (EeutilException e) {
       logger.error("Error crear aplicacion");
     }
     return retorno;
   }
 
   private AplicacionObject convertToObject(HttpServletRequest request) {
-    if (StringUtils.isEmpty(request.getParameter("identificador"))
+    if (StringUtils.isEmpty(request.getParameter(IDENTIFICADOR_PARAM))
         || StringUtils.isEmpty(request.getParameter("email"))
         || StringUtils.isEmpty(request.getParameter("responsable"))
         || StringUtils.isEmpty(request.getParameter("telefono"))
-        || StringUtils.isEmpty(request.getParameter("codigoUnidadOrganica"))) {
+        || StringUtils.isEmpty(request.getParameter(CODIGO_UNIDAD_ORGANICA_PARAM))) {
       return null;
     } else {
       AplicacionObject retorno = new AplicacionObject();
-      retorno.setIdentificador(request.getParameter("identificador"));
+      retorno.setIdentificador(request.getParameter(IDENTIFICADOR_PARAM));
       retorno.setPassword(request.getParameter("password"));
       retorno.setEmail(request.getParameter("email"));
       retorno.setResponsable(request.getParameter("responsable"));
@@ -223,7 +220,7 @@ public class AplicacionesController {
 
       if (StringUtils.isNotEmpty(request.getParameter("aditional"))) {
         StringTokenizer tmpToken = new StringTokenizer(request.getParameter("aditional"), ";;");
-        Map<String, String> aditionalData = new HashMap<String, String>();
+        Map<String, String> aditionalData = new HashMap<>();
         while (tmpToken.hasMoreTokens()) {
           String[] datos = tmpToken.nextToken().split("=");
           if (datos.length > 1)
@@ -233,9 +230,9 @@ public class AplicacionesController {
         }
         retorno.setAditionalData(aditionalData);
       }
-      if (StringUtils.isNotEmpty(request.getParameter("codigoUnidadOrganica"))
-          && validateOrgano(request.getParameter("codigoUnidadOrganica"))) {
-        retorno.setCodigoUnidadOrganica(request.getParameter("codigoUnidadOrganica"));
+      if (StringUtils.isNotEmpty(request.getParameter(CODIGO_UNIDAD_ORGANICA_PARAM))
+          && validateOrgano(request.getParameter(CODIGO_UNIDAD_ORGANICA_PARAM))) {
+        retorno.setCodigoUnidadOrganica(request.getParameter(CODIGO_UNIDAD_ORGANICA_PARAM));
       }
 
       return retorno;
@@ -244,8 +241,8 @@ public class AplicacionesController {
 
   private boolean validateOrgano(String organo) {
     boolean idValid = false;
-    List<Criterion> criterias = new ArrayList<Criterion>();
-    criterias.add(Restrictions.eq("codigoUnidadOrganica", organo));
+    List<Criterion> criterias = new ArrayList<>();
+    criterias.add(Restrictions.eq(CODIGO_UNIDAD_ORGANICA_PARAM, organo));
     UnidadOrganica unidadOrganica =
         (UnidadOrganica) eeutilDao.findObjeto(UnidadOrganica.class, criterias);
     if (unidadOrganica != null) {
@@ -253,5 +250,6 @@ public class AplicacionesController {
     }
     return idValid;
   }
+
 
 }

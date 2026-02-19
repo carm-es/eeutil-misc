@@ -3,10 +3,11 @@
 xmlns:th="http://www.thymeleaf.org"
 xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
 xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-layout:decorator="common/layout">
+layout:decorator="common/layout" lang="es">
 
 <head>
 
+	<title>Lista de usuarios aplicaciones en eeutils</title>
 	<script th:src="|${#httpServletRequest.getContextPath()}/js/aplicaciones/lista.js|"></script>
 
 </head>
@@ -53,9 +54,10 @@ layout:decorator="common/layout">
 	                <input type="hidden" name="codigoUnidadOrganica" id="codigoUnidadOrganica"/>
 	                <input type="hidden" name="serialNumberCertificado" id="serialNumberCertificado"/>
 	                <input type="hidden" name="numeroProcedimiento" id="numeroProcedimiento"/>
+	                <input type="hidden" name="modoEscritura" id="modoEscritura"/>
 	        </form>
         
-            <table id="appList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld">
+            <table id="appList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld" aria-describedby="tabla_lista_usuarios_app">
             	<thead>
                     <tr>
                         <th class="mf-sort-ln" href="·" th:title="#{listaAplicaciones.tablaIdentificador.title}" th:text="#{listaAplicaciones.tablaIdentificador.title}"></th>                                            

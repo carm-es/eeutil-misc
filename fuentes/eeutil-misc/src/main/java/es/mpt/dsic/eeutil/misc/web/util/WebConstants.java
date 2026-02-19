@@ -1,14 +1,3 @@
-/*
- * Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed and may be used,
- * modified and redistributed under the terms of the European Public License (EUPL), either version
- * 1.1 or (at your option) any later version as soon as they are approved by the European
- * Commission. Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * more details. You should have received a copy of the EUPL1.1 license along with this program; if
- * not, you may find it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- */
-
 package es.mpt.dsic.eeutil.misc.web.util;
 
 import java.util.Locale;
@@ -75,9 +64,9 @@ public class WebConstants {
 
   // Mensajes validacion expediente
   public static final String MSG_ERROR_VALIDACION_EXPE_SIN_FIRMA =
-      "Validación incorrecta : cvc-complex-type.2.4.b: The content of element 'eniconexpind:CarpetaIndizada' is not complete";
+      "Validacion incorrecta : cvc-complex-type.2.4.b: The content of element 'eniconexpind:CarpetaIndizada' is not complete";
   public static final String MSG_ERROR_VALIDACION_EXPE_SIN_FIRMA_ADITIONAL =
-      "Validación incorrecta : cvc-complex-type.2.4.b: The content of element 'ns2:indice' is not complete";
+      "Validacion incorrecta : cvc-complex-type.2.4.b: The content of element 'ns2:indice' is not complete";
   public static final String MSG_VALIDACION_EXP_CORRECTA = "Validacion correcta";
   public static final String MSG_VALIDACION_EXP_FORMATO_ERROR = "validarExpedient.formatoError";
 

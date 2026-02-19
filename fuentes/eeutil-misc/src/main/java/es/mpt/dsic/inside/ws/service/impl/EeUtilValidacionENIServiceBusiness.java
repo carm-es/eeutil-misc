@@ -1,0 +1,811 @@
+package es.mpt.dsic.inside.ws.service.impl;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.activation.DataHandler;
+import javax.mail.util.ByteArrayDataSource;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import es.mpt.dsic.inside.utils.exception.EeutilException;
+import es.mpt.dsic.inside.utils.xml.XMLUtil;
+import es.mpt.dsic.inside.validacioneni.EeutilEniValidationENIService;
+import es.mpt.dsic.inside.ws.service.codigosrespuestavalidacion.ExpedienteENICodigosRespuestaValidacion;
+import es.mpt.dsic.inside.ws.service.codigosrespuestavalidacion.GlobalValidacionENICodigosRespuestaValidacion;
+import es.mpt.dsic.inside.ws.service.model.Detalle;
+import es.mpt.dsic.inside.ws.service.model.RespuestaValidacionENI;
+import es.mpt.dsic.inside.ws.service.model.Validaciones;
+import es.mpt.dsic.inside.ws.service.model.pdf.DocumentoEntradaMtom;
+
+@Component
+public class EeUtilValidacionENIServiceBusiness {
+
+  protected static final Log logger = LogFactory.getLog(EeUtilValidacionENIServiceBusiness.class);
+
+  @Autowired
+  private EeutilEniValidationENIService eeutilEniValidationENIService;
+
+  public RespuestaValidacionENI validarFirmaDocumentoENI(String idApp, String password,
+      byte[] documentoENI, String version) {
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    // Formatea y generaliza los datos a string xml
+    String dataDocumentoXml;
+    try {
+
+      if (documentoENI.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarFirmaDocumentoENI es vacio", 0);
+      }
+
+      dataDocumentoXml = XMLUtil.obtenerDocumentoENIXML(XMLUtil.decodeUTF8(documentoENI), version);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    // VALIDACION 3 VALIDACIONFIRMA()
+    Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaDocumentoEniFile(idApp,
+        password, dataDocumentoXml);
+    listaDetalles.add(detalleFirma);
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  /*
+   * Si hay algun codigo de error devuelve codigo de error en el global
+   */
+  private RespuestaValidacionENI getRespuestaGlobal(List<Detalle> listaDetalles) {
+
+    RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+    respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_000_CODIGO + " - "
+        + GlobalValidacionENICodigosRespuestaValidacion.G_000_DETALLE);
+    respuesta.setDetalle(listaDetalles);
+
+    if (listaDetalles.isEmpty()) {
+      Detalle detalleVaciasValidaciones = new Detalle();
+      detalleVaciasValidaciones
+          .setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_999_CODIGO);
+      detalleVaciasValidaciones
+          .setDetalleRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_999_DETALLE);
+      detalleVaciasValidaciones.setIdObjeto(
+          GlobalValidacionENICodigosRespuestaValidacion.G_ZZZ_ID_OBJETO_ERROR_VALIDACIONES);
+      // Se suma un detalle vacio para indicar que no se ha solicitado hacer ninguna
+      // validacion
+      respuesta.getDetalle().add(detalleVaciasValidaciones);
+      respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_999_CODIGO + " - "
+          + GlobalValidacionENICodigosRespuestaValidacion.G_999_DETALLE);
+
+    } else {
+      for (Detalle detalle : listaDetalles) {
+
+        if (detalle.getCodigoRespuesta().endsWith("999]")
+            || detalle.getCodigoRespuesta().endsWith("XX]")) {
+          respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_999_CODIGO + " - "
+              + GlobalValidacionENICodigosRespuestaValidacion.G_999_DETALLE);
+          break;
+        }
+      }
+    }
+
+    return respuesta;
+  }
+
+  public RespuestaValidacionENI validarDocumentoENI(String idApp, String password,
+      byte[] documentoENI, String version, Validaciones validaciones) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    // Formatea y generaliza los datos a string xml
+    String dataDocumentoXml;
+    try {
+
+      if (documentoENI.length < 1) {
+        throw new ParseException("El contenido del fichero xml para validarDocumentoENI es vacio",
+            0);
+      }
+
+      dataDocumentoXml = XMLUtil.obtenerDocumentoENIXML(XMLUtil.decodeUTF8(documentoENI), version);
+
+      String formatoDocumentoENI = dataDocumentoXml.substring(
+          dataDocumentoXml.indexOf("NombreFormato>") + "NombreFormato>".length(),
+          dataDocumentoXml.indexOf("</", dataDocumentoXml.indexOf("NombreFormato>") + 1));
+
+      if (formatoDocumentoENI == null || formatoDocumentoENI.equals("")) {
+        throw new ParseException("No se ha podido obtener el formato del documento ENI", 0);
+      } else {
+        formatoDocumentoENI = formatoDocumentoENI.trim();
+      }
+
+      boolean esFormatoValido = contentNombreFormato(formatoDocumentoENI);
+
+      if (!esFormatoValido) {
+        Detalle det = new Detalle();
+        det.setIdObjeto("XXX");
+        det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_999_CODIGO);
+        det.setDetalleRespuesta("El formato del documento ENI no es valido. Formato: "
+            + formatoDocumentoENI.toUpperCase());
+        listaDetalles.add(det);
+      }
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    if (validaciones.isValidaSchema()) {
+      // VALIDACION 1 VALIDACIONSHEMA()
+      Detalle detalleShemas =
+          eeutilEniValidationENIService.validarShemaDocumentoEniFile(dataDocumentoXml, version);
+      listaDetalles.add(detalleShemas);
+    }
+
+    if (validaciones.isValidaDir3()) {
+      // VALIDACION 2 VALIDACIONCODIGOUNIDADDIR3()
+      Detalle detalleDir3 =
+          eeutilEniValidationENIService.validarUnidadOrganicaDocumentoEniFile(dataDocumentoXml);
+      listaDetalles.add(detalleDir3);
+    }
+
+    if (validaciones.isValidaFirma()) {
+      // VALIDACION 3 VALIDACIONFIRMA()
+      Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaDocumentoEniFile(idApp,
+          password, dataDocumentoXml);
+      listaDetalles.add(detalleFirma);
+    }
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarDocumentoENIMtom(String idApp, String password,
+      DocumentoEntradaMtom documentoENI, String version, Validaciones validaciones) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    // Formatea y generaliza los datos a string xml
+    String dataDocumentoXml;
+    try {
+      byte[] documento = IOUtils.toByteArray(documentoENI.getContenido().getInputStream());
+
+      if (documento.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarDocumentoENIMtom es vacio", 0);
+      }
+
+      dataDocumentoXml = XMLUtil.obtenerDocumentoENIXML(XMLUtil.decodeUTF8(documento), version);
+
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    if (validaciones.isValidaSchema()) {
+      // VALIDACION 1 VALIDACIONSHEMA()
+      Detalle detalleShemas =
+          eeutilEniValidationENIService.validarShemaDocumentoEniFile(dataDocumentoXml, version);
+      listaDetalles.add(detalleShemas);
+    }
+
+    if (validaciones.isValidaDir3()) {
+      // VALIDACION 2 VALIDACIONCODIGOUNIDADDIR3()
+      Detalle detalleDir3 =
+          eeutilEniValidationENIService.validarUnidadOrganicaDocumentoEniFile(dataDocumentoXml);
+      listaDetalles.add(detalleDir3);
+    }
+
+    if (validaciones.isValidaFirma()) {
+      // VALIDACION 3 VALIDACIONFIRMA()
+      Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaDocumentoEniFile(idApp,
+          password, dataDocumentoXml);
+      listaDetalles.add(detalleFirma);
+    }
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarExpedienteENI(String idApp, String password,
+      byte[] expedienteENI, String version, Validaciones validaciones) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    String dataExpedienteENIXml;
+    String dataExpedienteENIXmlNoProcedenteInside;
+    try {
+
+      if (expedienteENI.length < 1) {
+        throw new ParseException("El contenido del fichero para validarExpedienteENI xml es vacio",
+            0);
+      }
+
+      dataExpedienteENIXml =
+          XMLUtil.obtenerExpedienteENIXML(XMLUtil.decodeUTF8(expedienteENI), version);
+      dataExpedienteENIXmlNoProcedenteInside = XMLUtil
+          .obtenerExpedienteENIXMLNoProcedenteInside(XMLUtil.decodeUTF8(expedienteENI), version);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    if (validaciones.isValidaSchema()) {
+      // VALIDACION 1 VALIDACIONSHEMA
+      Detalle detalleShemas = eeutilEniValidationENIService
+          .validarShemaExpedienteEniFile(dataExpedienteENIXml, version);
+      listaDetalles.add(detalleShemas);
+    }
+
+    if (validaciones.isValidaDir3()) {
+      // VALIDACION 3 VALIDACIONCODIGOUNIDADDIR3
+      Detalle detalleDir3 = eeutilEniValidationENIService
+          .validarUnidadOrganicaExpedienteEniFile(dataExpedienteENIXml);
+      listaDetalles.add(detalleDir3);
+    }
+
+    if (validaciones.isValidaSIA()) {
+      // VALIDACION 4 VALIDACIONCODIGOSIA
+      Detalle detalleSIA =
+          eeutilEniValidationENIService.validarCodigoSIAExpedienteEniFile(dataExpedienteENIXml);
+      listaDetalles.add(detalleSIA);
+    }
+
+    if (validaciones.isValidaFirma()) {
+      // VALIDACION 2 VALIDACIONFIRMAS
+      Detalle detalleFirma =
+          eeutilEniValidationENIService.validarFirmaExpedienteEniFile(idApp, password,
+              dataExpedienteENIXml, dataExpedienteENIXmlNoProcedenteInside, expedienteENI, version);
+      listaDetalles.add(detalleFirma);
+    }
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarExpedienteENIMtom(String idApp, String password,
+      DocumentoEntradaMtom expedienteENI, String version, Validaciones validaciones) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    String dataExpedienteENIXml;
+    String dataExpedienteENIXmlNoProcedenteInside;
+    byte[] expedienteRecibidoOriginalSinTocar = null;
+    try {
+      expedienteRecibidoOriginalSinTocar =
+          IOUtils.toByteArray(expedienteENI.getContenido().getInputStream());
+
+      if (expedienteRecibidoOriginalSinTocar.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarExpedienteENIMtom es vacio", 0);
+      }
+
+      dataExpedienteENIXml = XMLUtil
+          .obtenerExpedienteENIXML(XMLUtil.decodeUTF8(expedienteRecibidoOriginalSinTocar), version);
+      dataExpedienteENIXmlNoProcedenteInside = XMLUtil.obtenerExpedienteENIXMLNoProcedenteInside(
+          XMLUtil.decodeUTF8(expedienteRecibidoOriginalSinTocar), version);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    if (validaciones.isValidaSchema()) {
+      // VALIDACION 1 VALIDACIONSHEMA
+      Detalle detalleShemas = eeutilEniValidationENIService
+          .validarShemaExpedienteEniFile(dataExpedienteENIXml, version);
+      listaDetalles.add(detalleShemas);
+    }
+
+    if (validaciones.isValidaDir3()) {
+      // VALIDACION 3 VALIDACIONCODIGOUNIDADDIR3
+      Detalle detalleDir3 = eeutilEniValidationENIService
+          .validarUnidadOrganicaExpedienteEniFile(dataExpedienteENIXml);
+      listaDetalles.add(detalleDir3);
+    }
+
+    if (validaciones.isValidaSIA()) {
+      // VALIDACION 4 VALIDACIONCODIGOSIA
+      Detalle detalleSIA =
+          eeutilEniValidationENIService.validarCodigoSIAExpedienteEniFile(dataExpedienteENIXml);
+      listaDetalles.add(detalleSIA);
+    }
+
+    if (validaciones.isValidaFirma()) {
+      // VALIDACION 2 VALIDACIONFIRMAS
+      Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaExpedienteEniFile(idApp,
+          password, dataExpedienteENIXml, dataExpedienteENIXmlNoProcedenteInside,
+          expedienteRecibidoOriginalSinTocar, version);
+      listaDetalles.add(detalleFirma);
+    }
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarFirmaDocumentoENIMtom(String idApp, String password,
+      DocumentoEntradaMtom documentoENI, String version) {
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    // Formatea y generaliza los datos a string xml
+    String dataDocumentoXml;
+    try {
+      byte[] documento = IOUtils.toByteArray(documentoENI.getContenido().getInputStream());
+
+      if (documento.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarFirmaDocumentoENIMtom es vacio", 0);
+      }
+
+
+      dataDocumentoXml = XMLUtil.obtenerDocumentoENIXML(XMLUtil.decodeUTF8(documento), version);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    // VALIDACION 3 VALIDACIONFIRMA()
+    Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaDocumentoEniFile(idApp,
+        password, dataDocumentoXml);
+    listaDetalles.add(detalleFirma);
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarFirmaExpedienteENI(String idApp, String password,
+      byte[] expedienteENI, String version) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    String dataExpedienteENIXml;
+    String dataExpedienteENIXmlNoProcedenteInside;
+    try {
+
+      if (expedienteENI.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarFirmaExpedienteENI es vacio", 0);
+      }
+
+      dataExpedienteENIXml =
+          XMLUtil.obtenerExpedienteENIXML(XMLUtil.decodeUTF8(expedienteENI), version);
+      dataExpedienteENIXmlNoProcedenteInside = XMLUtil
+          .obtenerExpedienteENIXMLNoProcedenteInside(XMLUtil.decodeUTF8(expedienteENI), version);
+      eeutilEniValidationENIService.setIdentificadorExpedienteXML(dataExpedienteENIXml);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    // VALIDACION 2 VALIDACIONFIRMAS
+    Detalle detalleFirma =
+        eeutilEniValidationENIService.validarFirmaExpedienteEniFile(idApp, password,
+            dataExpedienteENIXml, dataExpedienteENIXmlNoProcedenteInside, expedienteENI, version);
+    listaDetalles.add(detalleFirma);
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+
+  public RespuestaValidacionENI validarFirmaExpedienteENIMtom(String idApp, String password,
+      DocumentoEntradaMtom expedienteENI, String version) {
+
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    String dataExpedienteENIXml;
+    String dataExpedienteENIXmlNoProcedenteInside;
+    byte[] expedienteRecibidoOriginalSinTocar = null;
+    try {
+      expedienteRecibidoOriginalSinTocar =
+          IOUtils.toByteArray(expedienteENI.getContenido().getInputStream());
+
+      if (expedienteRecibidoOriginalSinTocar.length < 1) {
+        throw new ParseException(
+            "El contenido del fichero xml para validarFirmaExpedienteENIMtom es vacio", 0);
+      }
+
+      dataExpedienteENIXml = XMLUtil
+          .obtenerExpedienteENIXML(XMLUtil.decodeUTF8(expedienteRecibidoOriginalSinTocar), version);
+      dataExpedienteENIXmlNoProcedenteInside = XMLUtil.obtenerExpedienteENIXMLNoProcedenteInside(
+          XMLUtil.decodeUTF8(expedienteRecibidoOriginalSinTocar), version);
+      eeutilEniValidationENIService.setIdentificadorExpedienteXML(dataExpedienteENIXml);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+    // VALIDACION 2 VALIDACIONFIRMAS
+    Detalle detalleFirma = eeutilEniValidationENIService.validarFirmaExpedienteEniFile(idApp,
+        password, dataExpedienteENIXml, dataExpedienteENIXmlNoProcedenteInside,
+        expedienteRecibidoOriginalSinTocar, version);
+    listaDetalles.add(detalleFirma);
+
+    // Construir respuesta global.
+    return getRespuestaGlobal(listaDetalles);
+  }
+
+  public RespuestaValidacionENI validarExpedienteDocumentosENIZIP(String idApp, String password,
+      byte[] docZipEntrada, String version, Validaciones validacionesExpediente,
+      Validaciones validacionesDocumentos) {
+    logger.debug("Inicio validarExpedienteDocumentosENIZIP");
+    RespuestaValidacionENI respuestaExpediente = null;
+    List<Detalle> listaDetalles = new ArrayList<>();
+    List<RespuestaValidacionENI> listaRespuestaDocumentos = new ArrayList<>();
+
+    try {
+      DocumentoEntradaMtom docZipEntradaObj = new DocumentoEntradaMtom();
+      ByteArrayDataSource dataSourceExp = new ByteArrayDataSource(docZipEntrada, null);
+      docZipEntradaObj.setContenido(new DataHandler(dataSourceExp));
+      HashMap<String, List<byte[]>> ficherosExpAndDocs = descomprimirZIP(docZipEntradaObj);
+      List<byte[]> listaExpediente = ficherosExpAndDocs.get(XMLUtil.KEY_MAPA_LISTAEXPEDIENTE);
+
+      if (listaExpediente.size() > 1) {
+        RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+        // ponemos global a error
+        respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO + " - "
+            + GlobalValidacionENICodigosRespuestaValidacion.G_XXX_DETALLE);
+        return respuesta;
+      }
+
+      List<byte[]> listaDocumentos = ficherosExpAndDocs.get(XMLUtil.KEY_MAPA_LISTADOCUMENTO);
+
+      // validamos expediente
+      logger.debug("Inicio validarExpedienteENIZIP");
+      respuestaExpediente = validarExpedienteENIZIP(idApp, password, listaExpediente, version,
+          validacionesExpediente);
+      logger.debug("Fin validarExpedienteENIZIP");
+
+      // validamos documento
+      logger.debug("Inicio validarDocumentosENIZIP");
+      listaRespuestaDocumentos = validarDocumentosENIZIP(idApp, password, listaDocumentos, version,
+          validacionesDocumentos);
+      logger.debug("Fin validarDocumentosENIZIP");
+
+      // correspondencia docs
+      logger.debug("Inicio validarCorrespondenciaExpedienteDocumentosENIZIP");
+      RespuestaValidacionENI resultadoCorrespondencia =
+          validarCorrespondenciaExpedienteDocumentosENIZIP(listaExpediente, listaDocumentos);
+      logger.debug("Fin validarCorrespondenciaExpedienteDocumentosENIZIP");
+
+      logger.debug("Fin validarExpedienteDocumentosENIZIP");
+      return getRespuestaGlobalZIP(respuestaExpediente, listaRespuestaDocumentos,
+          resultadoCorrespondencia);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      // ponemos global a error
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+  }
+
+  public RespuestaValidacionENI validarExpedienteDocumentosENIZIPMtom(String idApp, String password,
+      DocumentoEntradaMtom docZipEntrada, String version, Validaciones validacionesExpediente,
+      Validaciones validacionesDocumentos) {
+    logger.debug("Inicio validarExpedienteDocumentosENIZIP");
+    RespuestaValidacionENI respuestaExpediente = null;
+    List<RespuestaValidacionENI> listaRespuestaDocumentos = new ArrayList<RespuestaValidacionENI>();
+    List<Detalle> listaDetalles = new ArrayList<>();
+    RespuestaValidacionENI respuestaCorrespondencia = null;
+
+    try {
+      HashMap<String, List<byte[]>> ficherosExpAndDocs = descomprimirZIP(docZipEntrada);
+      List<byte[]> listaExpediente = ficherosExpAndDocs.get(XMLUtil.KEY_MAPA_LISTAEXPEDIENTE);
+
+      if (listaExpediente.size() > 1) {
+        RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+        // ponemos global a error
+        respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO + " - "
+            + GlobalValidacionENICodigosRespuestaValidacion.G_XXX_DETALLE);
+        return respuesta;
+      }
+
+      List<byte[]> listaDocumentos = ficherosExpAndDocs.get(XMLUtil.KEY_MAPA_LISTADOCUMENTO);
+
+      // validamos expediente
+      logger.debug("Inicio validarExpedienteENIZIP");
+      respuestaExpediente = validarExpedienteENIZIP(idApp, password, listaExpediente, version,
+          validacionesExpediente);
+      logger.debug("Fin validarExpedienteENIZIP");
+
+      // validamos documento
+      logger.debug("Inicio validarDocumentosENIZIP");
+      listaRespuestaDocumentos = validarDocumentosENIZIP(idApp, password, listaDocumentos, version,
+          validacionesDocumentos);
+      logger.debug("Fin validarDocumentosENIZIP");
+
+      // correspondencia docs
+      logger.debug("Inicio validarCorrespondenciaExpedienteDocumentosENIZIP");
+      RespuestaValidacionENI resultadoCorrespondencia =
+          validarCorrespondenciaExpedienteDocumentosENIZIP(listaExpediente, listaDocumentos);
+      logger.debug("Fin validarCorrespondenciaExpedienteDocumentosENIZIP");
+
+      logger.debug("Fin validarExpedienteDocumentosENIZIP");
+      return getRespuestaGlobalZIP(respuestaExpediente, listaRespuestaDocumentos,
+          resultadoCorrespondencia);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      // ponemos global a error
+      RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+      respuesta.setGlobal(e.getMessage());
+      Detalle det = new Detalle();
+      det.setIdObjeto("XXX");
+      det.setCodigoRespuesta(GlobalValidacionENICodigosRespuestaValidacion.G_XXX_CODIGO);
+      det.setDetalleRespuesta(e.getMessage());
+      listaDetalles.add(det);
+      respuesta.setDetalle(listaDetalles);
+      return respuesta;
+    }
+
+  }
+
+  private HashMap<String, List<byte[]>> descomprimirZIP(DocumentoEntradaMtom docZipEntrada)
+      throws EeutilException {
+    try {
+      byte[] zipExpAndDocs;
+      zipExpAndDocs = IOUtils.toByteArray(docZipEntrada.getContenido().getInputStream());
+      return XMLUtil.unZipFileExpYDocs(zipExpAndDocs);
+    } catch (IOException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new EeutilException(e.getMessage(), e);
+    }
+
+  }
+
+  private RespuestaValidacionENI getRespuestaGlobalZIP(RespuestaValidacionENI respuestaExpediente,
+      List<RespuestaValidacionENI> listaRespuestaDocumentos,
+      RespuestaValidacionENI respuestaCorrespondencia) {
+    logger.debug("Inicio getRespuestaGlobalZIP");
+    RespuestaValidacionENI respuesta = new RespuestaValidacionENI();
+    respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_000_CODIGO + " - "
+        + GlobalValidacionENICodigosRespuestaValidacion.G_000_DETALLE);
+
+    // lista global acumulando todos los detalles
+    List<Detalle> listaGlobalDetalles = new ArrayList<>();
+    listaGlobalDetalles.addAll(respuestaExpediente.getDetalle());
+
+    for (int iDoc = 0; iDoc < listaRespuestaDocumentos.size(); iDoc++) {
+      listaGlobalDetalles.addAll(listaRespuestaDocumentos.get(iDoc).getDetalle());
+    }
+
+    listaGlobalDetalles.addAll(respuestaCorrespondencia.getDetalle());
+
+    respuesta.setDetalle(listaGlobalDetalles);
+
+    // si en algun detalle hay error, el global debe ser error.
+    for (Detalle detalleGlobal : listaGlobalDetalles) {
+      if (detalleGlobal.getCodigoRespuesta().endsWith("999]")) {
+        respuesta.setGlobal(GlobalValidacionENICodigosRespuestaValidacion.G_999_CODIGO + " - "
+            + GlobalValidacionENICodigosRespuestaValidacion.G_999_DETALLE);
+        break;
+      }
+    }
+
+    logger.debug("Fin getRespuestaGlobalZIP");
+    return respuesta;
+  }
+
+  private RespuestaValidacionENI validarCorrespondenciaExpedienteDocumentosENIZIP(
+      List<byte[]> listaExpediente, List<byte[]> listaDocumentos) {
+
+    List<String> listaIdentificadorDocumentoIndizadoEnIndice =
+        getListaIdentificadorDocumentoIndizado(listaExpediente);
+
+    List<String> listaIdentificadorDocumento = getListaIdentificadorDocumentos(listaDocumentos);
+
+    return correspondenciaIdentificadoresDocIndiceConDocumentos(
+        listaIdentificadorDocumentoIndizadoEnIndice, listaIdentificadorDocumento);
+  }
+
+  private RespuestaValidacionENI validarExpedienteENIZIP(String idApp, String password,
+      List<byte[]> listaExpediente, String version, Validaciones validacionesExpediente) {
+    /**
+     * DocumentoEntradaMtom expcEntrada = new DocumentoEntradaMtom(); ByteArrayDataSource
+     * dataSourceExp = new ByteArrayDataSource(listaExpediente.get(0),null);
+     * expcEntrada.setContenido(new DataHandler(dataSourceExp));
+     * 
+     */
+    byte[] expcEntrada = listaExpediente.get(0);
+
+    return validarExpedienteENI(idApp, password, expcEntrada, version, validacionesExpediente);
+
+  }
+
+  private List<RespuestaValidacionENI> validarDocumentosENIZIP(String idApp, String password,
+      List<byte[]> listaDocumentos, String version, Validaciones validacionesDocumentos) {
+    List<RespuestaValidacionENI> listaRespuestaDocumentos = new ArrayList<>();
+
+    for (int indiceDoc = 0; indiceDoc < listaDocumentos.size(); indiceDoc++) {
+
+      /**
+       * DocumentoEntradaMtom docEntrada = new DocumentoEntradaMtom(); ByteArrayDataSource
+       * dataSourceDoc = new ByteArrayDataSource(listaDocumentos.get(indiceDoc),null);
+       * docEntrada.setContenido(new DataHandler(dataSourceDoc));
+       **/
+      byte[] docEntrada = listaDocumentos.get(indiceDoc);
+      RespuestaValidacionENI respuestaDocumento =
+          validarDocumentoENI(idApp, password, docEntrada, version, validacionesDocumentos);
+      listaRespuestaDocumentos.add(respuestaDocumento);
+    }
+
+    return listaRespuestaDocumentos;
+  }
+
+  private List<String> getListaIdentificadorDocumentoIndizado(List<byte[]> listaExpediente) {
+    byte[] expedienteENI = listaExpediente.get(0);
+    String tagNodo = "IdentificadorDocumento";
+    return XMLUtil.listaValoresNodo(expedienteENI, tagNodo);
+
+  }
+
+  private List<String> getListaIdentificadorDocumentos(List<byte[]> listaDocumentos) {
+    String tagNodoDocumentoIdentificador = "Identificador";
+    List<String> listaIdentificadorDocumento = new ArrayList<>();
+    for (int i = 0; i < listaDocumentos.size(); i++) {
+      try {
+        List<String> listaIdentDocAux =
+            XMLUtil.listaValoresNodo(listaDocumentos.get(i), tagNodoDocumentoIdentificador);
+        listaIdentificadorDocumento.add(listaIdentDocAux.get(0));
+      } catch (Exception e) {
+        logger.error(
+            "ERROR en getListaIdentificadorDocumentos al obtener el identificadorDocuemtno en este documento : "
+                + new String(listaDocumentos.get(i), XMLUtil.UTF8_CHARSET));
+      }
+    }
+
+    return listaIdentificadorDocumento;
+
+  }
+
+  private RespuestaValidacionENI correspondenciaIdentificadoresDocIndiceConDocumentos(
+      List<String> indice, List<String> documentos) {
+    // Lista resultado de las validaciones
+    List<Detalle> listaDetalles = new ArrayList<>();
+
+    StringBuilder documentoNoEnIndice = new StringBuilder("");
+
+    for (int i = 0; i < documentos.size(); i++) {
+      Detalle detalleValidacion = new Detalle();
+      detalleValidacion.setIdObjeto(documentos.get(i));
+      detalleValidacion.setCodigoRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_000_CODIGO);
+      detalleValidacion
+          .setDetalleRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_000_DETALLE);
+
+      if (!indice.contains(documentos.get(i))) {
+        // error el indice tiene un identDeDocumentos que no tienen ningun documentoeni
+        detalleValidacion
+            .setCodigoRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_999_CODIGO);
+        detalleValidacion
+            .setDetalleRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_999_DETALLE);
+        documentoNoEnIndice.append(documentos.get(i));
+        documentoNoEnIndice.append(". ");
+      }
+
+      listaDetalles.add(detalleValidacion);
+    }
+
+    if (indice.size() != documentos.size()) {
+      // error hay distinto numero de de documentos en el indice y los que trae el zip
+      Detalle detalleValidacion = new Detalle();
+      detalleValidacion.setIdObjeto("N�MERO FICHEROS");
+      detalleValidacion.setCodigoRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_999_CODIGO);
+      detalleValidacion.setDetalleRespuesta(ExpedienteENICodigosRespuestaValidacion.E_N_999_DETALLE
+          + "-- Documentos no en Indice :" + documentoNoEnIndice);
+      listaDetalles.add(detalleValidacion);
+    }
+
+    return getRespuestaGlobal(listaDetalles);
+
+  }
+
+
+  public boolean contentNombreFormato(String formato) {
+
+    List<String> listado = Arrays.asList("PDF", "XML", "TXT", "HTML", "HTM", "DOC", "DOCX", "ODT",
+        "DOTX", "DOCM", "DOTM", "XLS", "XLSX", "XLTX", "XLSM", "XLTM", "XLAM", "XLSB", "PPT",
+        "PPTX", "POTX", "PPSX", "PPAM", "PPTM", "POTM", "MPP", "VSD", "RTF", "JPG", "PNG", "GIF",
+        "TIF", "SVF", "SVG", "P12", "CERT", "PS", "BZ", "BZ2", "ZIP", "GZIP", "RAR", "RM", "AIF",
+        "AU", "MIDI", "MPG", "OGA", "OGG", "MP3", "DVI", "AVI", "MOV", "WEBM", "MPEG", "MP4", "MHT",
+        "BIN");
+
+    return listado.contains(formato.toUpperCase());
+  }
+
+}

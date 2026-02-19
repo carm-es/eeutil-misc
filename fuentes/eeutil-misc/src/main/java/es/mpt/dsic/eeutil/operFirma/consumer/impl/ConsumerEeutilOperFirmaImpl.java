@@ -1,28 +1,26 @@
-/*
- * Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed and may be used,
- * modified and redistributed under the terms of the European Public License (EUPL), either version
- * 1.1 or (at your option) any later version as soon as they are approved by the European
- * Commission. Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * more details. You should have received a copy of the EUPL1.1 license along with this program; if
- * not, you may find it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- */
-
 package es.mpt.dsic.eeutil.operFirma.consumer.impl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.endpoint.Client;
+import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.springframework.stereotype.Service;
+
 import es.mpt.dsic.eeutil.operFirma.consumer.model.DatosFirmados;
 import es.mpt.dsic.eeutil.operFirma.consumer.model.EeUtilService;
 import es.mpt.dsic.eeutil.operFirma.consumer.model.EeUtilServiceImplService;
 import es.mpt.dsic.eeutil.operFirma.consumer.model.InSideException;
+import es.mpt.dsic.eeutil.operFirma.consumer.model.ResultadoValidacionFirmaInfo;
 import es.mpt.dsic.eeutil.operFirma.consumer.model.ResultadoValidacionInfo;
-import es.mpt.dsic.inside.security.model.ApplicationLogin;
+import es.mpt.dsic.eeutil.operFirma.consumer.model.ResultadoValidarCertificado;
+import es.mpt.dsic.inside.aop.AuditExternalServiceAnnotation;
+import es.mpt.dsic.inside.utils.exception.EeutilException;
 
 @Service
 public class ConsumerEeutilOperFirmaImpl {
@@ -60,7 +58,7 @@ public class ConsumerEeutilOperFirmaImpl {
     this.passTruststore = passTruststore;
   }
 
-  public void configure() throws InSideException {
+  public void configure() throws EeutilException {
     if (operFirmaWs == null) {
       URL urlOperFirma = null;
       String urlOper = null;
@@ -72,35 +70,137 @@ public class ConsumerEeutilOperFirmaImpl {
         System.setProperty("javax.net.ssl.trustStore", this.truststore);
         System.setProperty("javax.net.ssl.trustStorePassword", this.passTruststore);
 
+
+
         EeUtilServiceImplService ssOperFirma = new EeUtilServiceImplService(urlOperFirma);
         operFirmaWs = ssOperFirma.getEeUtilServiceImplPort();
+
+        setupTimeouts(ClientProxy.getClient(operFirmaWs));
+        disableChunking(ClientProxy.getClient(operFirmaWs));
+
       } catch (MalformedURLException e) {
-        logger.error("No se puede crear la URL del servicio Eeutil OperFirma " + urlOper, e);
-        throw new InSideException("No se puede crear la URL del servicio Eeutil OperFirma ", e);
+        // logger.error(
+        // "No se puede crear la URL del servicio Eeutil OperFirma "
+        // + urlOper, e);
+        throw new EeutilException(
+            "No se puede crear la URL del servicio Eeutil OperFirma " + e.getMessage(), e);
+      } catch (Exception e) {
+        // logger.error(
+        // "No se puede crear la URL del servicio Eeutil OperFirma "
+        // + urlOper, e);
+        throw new EeutilException(
+            "No se puede crear la URL del servicio Eeutil OperFirma " + e.getMessage(), e);
       }
     }
   }
 
-  public byte[] postProcesarFirma(ApplicationLogin info, byte[] firma) throws InSideException {
-    configure();
-    es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
-        new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
-    credential.setIdaplicacion(info.getIdApplicacion());
-    credential.setPassword(info.getPassword());
-    return operFirmaWs.postProcesarFirma(credential, firma);
+  @AuditExternalServiceAnnotation(nombreModulo = "eeutil-misc")
+  public byte[] postProcesarFirma(String idApp, String passw, byte[] firma) throws EeutilException {
+
+    try {
+      configure();
+      es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
+          new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
+      credential.setIdaplicacion(idApp);
+      credential.setPassword(passw);
+      return operFirmaWs.postProcesarFirma(credential, firma);
+    } catch (EeutilException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (InSideException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new EeutilException(e.getMessage(), e);
+    }
+  }
+
+  @AuditExternalServiceAnnotation(nombreModulo = "eeutil-misc")
+  public ResultadoValidacionInfo validacionFirma(String idApp, String password, byte[] firma,
+      String tipoFirma, DatosFirmados datosFirmados) throws EeutilException {
+    try {
+      configure();
+      es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
+          new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
+      credential.setIdaplicacion(idApp);
+      credential.setPassword(password);
+      return operFirmaWs.validacionFirma(credential, firma, tipoFirma, datosFirmados);
+    } catch (EeutilException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (InSideException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new EeutilException(e.getMessage(), e);
+    }
   }
 
 
-  public ResultadoValidacionInfo validacionFirma(ApplicationLogin info, byte[] firma,
-      String tipoFirma, DatosFirmados datosFirmados) throws InSideException {
-    configure();
-    es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
-        new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
-    credential.setIdaplicacion(info.getIdApplicacion());
-    credential.setPassword(info.getPassword());
-    ResultadoValidacionInfo result =
-        operFirmaWs.validacionFirma(credential, firma, tipoFirma, datosFirmados);
-    return result;
+  @AuditExternalServiceAnnotation(nombreModulo = "eeutil-misc")
+  public ResultadoValidacionFirmaInfo validacionFirmaInfo(String idApp, String password,
+      byte[] firma, String tipoFirma, DatosFirmados datosFirmados, boolean infoCertificados)
+      throws EeutilException {
+
+    try {
+      configure();
+      es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
+          new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
+      credential.setIdaplicacion(idApp);
+      credential.setPassword(password);
+      return operFirmaWs.validacionFirmaInfo(credential, firma, tipoFirma, datosFirmados,
+          infoCertificados);
+    } catch (EeutilException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (InSideException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new EeutilException(e.getMessage(), e);
+    }
+  }
+
+
+  private void disableChunking(Client client) {
+    HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
+    HTTPClientPolicy policy = httpConduit.getClient();
+    policy.setAllowChunking(false);
+    policy.setChunkingThreshold(0);
+    logger.debug("AllowChunking:" + policy.isAllowChunking());
+    logger.debug("ChunkingThreshold:" + policy.getChunkingThreshold());
+  }
+
+
+  @AuditExternalServiceAnnotation(nombreModulo = "eeutil-misc")
+  public ResultadoValidarCertificado validacionCertificado(String idApp, String password,
+      String certificate) throws EeutilException {
+    try {
+      configure();
+      es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin credential =
+          new es.mpt.dsic.eeutil.operFirma.consumer.model.ApplicationLogin();
+      credential.setIdaplicacion(idApp);
+      credential.setPassword(password);
+      return operFirmaWs.validarCertificado(credential, certificate);
+    } catch (EeutilException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (InSideException e) {
+      throw new EeutilException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new EeutilException(e.getMessage(), e);
+    }
+  }
+
+
+  /**
+   * Timeout de 120 sg para llamada entre modulos a misc
+   * 
+   * @param client
+   */
+  private void setupTimeouts(Client client) {
+
+    HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
+    HTTPClientPolicy policy = httpConduit.getClient();
+
+    // set time to wait for response in milliseconds. zero means unlimited
+
+    policy.setReceiveTimeout(120000L);
+    policy.setConnectionTimeout(120000L);
+
   }
 
 }

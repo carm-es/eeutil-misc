@@ -1,24 +1,14 @@
-/*
- * Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed and may be used,
- * modified and redistributed under the terms of the European Public License (EUPL), either version
- * 1.1 or (at your option) any later version as soon as they are approved by the European
- * Commission. Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * more details. You should have received a copy of the EUPL1.1 license along with this program; if
- * not, you may find it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- */
-
 package es.mpt.dsic.eeutil.misc.web.controller;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +21,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import es.mpt.dsic.eeutil.misc.web.util.WebConstants;
 import es.mpt.dsic.inside.config.EeutilApplicationDataConfig;
 import es.mpt.dsic.inside.security.service.LoginBusinessService;
 import es.mpt.dsic.inside.security.util.ConstantsClave;
-import es.mpt.dsic.inside.utils.xml.XMLUtil;
-import es.mpt.dsic.inside.ws.service.exception.InSideException;
-import eu.stork.peps.auth.commons.PEPSUtil;
+import es.mpt.dsic.inside.utils.exception.EeutilException;
+import eu.eidas.auth.commons.EidasStringUtil;
+import eu.eidas.auth.engine.xml.opensaml.SecureRandomXmlIdGenerator;
 
 @Controller
 @PropertySource("file:${eeutil-misc.config.path}/clave.properties")
-public class LoginController {
+public class LoginController extends BaseController {
+
+  private static final String VERSIONMAVEN_PARAM = "versionmaven";
 
   @Autowired
   private Environment env;
@@ -57,6 +50,9 @@ public class LoginController {
     if (session.getAttribute("SPRING_SECURITY_CONTEXT") != null) {
       retorno = new ModelAndView("principal");
     }
+
+    retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+
     return retorno;
   }
 
@@ -69,57 +65,65 @@ public class LoginController {
       ResourceBundle bundle = ResourceBundle.getBundle("messages", request.getLocale());
       retorno.addObject("error", bundle.getString(WebConstants.KEY_ERROR_LOGIN));
     }
+    retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
     return retorno;
   }
 
   @RequestMapping(value = "/loginRedirectClave", method = RequestMethod.POST)
-  public String loginClave(Model model, HttpSession session, HttpServletRequest request,
+  public ModelAndView loginClave(Model model, HttpSession session, HttpServletRequest request,
       RedirectAttributes redirectAttributes, Locale locale) {
     logger.debug("loginRedirectClave");
-    FileInputStream fin = null;
-    try {
 
-      String claveServiceUrl = env.getProperty(ConstantsClave.PROPERTY_URL_CLAVE);
-      String excludedIdPList = env.getProperty(ConstantsClave.PROPERTY_EXCLUDED_IDPLIST);
+    ModelAndView retorno = new ModelAndView("login-redirect");
+
+
+    try (FileInputStream fin = new FileInputStream(
+        EeutilApplicationDataConfig.CONFIG_PATH + File.separator + ConstantsClave.SP_PROPERTIES)) {
+      String claveServiceUrl = env.getProperty(ConstantsClave.SERVICE_URL);
+      // String excludedIdPList = env.getProperty(Configuration.PROPERTY_EXCLUDED_IDPLIST);
       String forcedIdP = env.getProperty(ConstantsClave.PROPERTY_FORCED_IDP);
 
-      byte[] token = null;
+      // session.setAttribute(VERSION, versionValue);
 
+      byte[] token;
       Properties props = new Properties();
-      fin = new FileInputStream(
-          EeutilApplicationDataConfig.CONFIG_PATH + File.separator + ConstantsClave.SP_PROPERTIES);
+
       props.load(fin);
       token = loginBusinessService.generaTokenClave(claveServiceUrl, props);
 
-      String samlRequest = PEPSUtil.encodeSAMLToken(token);
-      String samlRequestXML = new String(token, XMLUtil.UTF8_CHARSET);
+
+      String SAMLRequest = EidasStringUtil.encodeToBase64(token);
+      String samlRequestXML = new String(token);
+      String relayState = SecureRandomXmlIdGenerator.INSTANCE.generateIdentifier(8);
+
       if (logger.isInfoEnabled()) {
         logger.debug(samlRequestXML);
       }
 
       model.addAttribute("claveServiceUrl", claveServiceUrl);
-      model.addAttribute(ConstantsClave.ATRIBUTO_EXCLUDED_IDPLIST, excludedIdPList);
+      // model.addAttribute(Configuration.ATRIBUTO_EXCLUDED_IDPLIST, excludedIdPList);
       model.addAttribute(ConstantsClave.ATRIBUTO_FORCED_IDP, forcedIdP);
-      model.addAttribute(ConstantsClave.ATRIBUTO_SAML_REQUEST, samlRequest);
+      model.addAttribute(ConstantsClave.ATRIBUTO_SAML_REQUEST, SAMLRequest);
+      model.addAttribute(ConstantsClave.ATRIBUTO_RELAY_STATE, relayState);
 
-      return "login-redirect";
-    } catch (InSideException e) {
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+
+      return retorno;
+
+    } catch (EeutilException e) {
       logger.error("Error: " + e.toString());
-      return "login?error=Error acceso a cl@ve";
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+      retorno.setViewName("login?error=Error acceso a cl@ve");
+      return retorno;
 
     } catch (Exception e) {
       logger.error("Error: " + e.toString());
-      return "login?error=Error acceso a cl@ve";
-    } finally {
-      try {
-        if (fin != null) {
-          fin.close();
-        }
-      } catch (IOException e) {
-        logger.error("Error: " + e.toString());
-        return "login?error=Error acceso a cl@ve";
-      }
+      retorno.addObject(VERSIONMAVEN_PARAM, getVersion());
+      retorno.setViewName("login?error=Error acceso a cl@ve");
+      return retorno;
     }
+
+
   }
 
 

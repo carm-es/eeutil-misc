@@ -3,9 +3,10 @@
 xmlns:th="http://www.thymeleaf.org"
 xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
 xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-layout:decorator="common/layout">
+layout:decorator="common/layout" lang="es">
 
 <head>
+	<title>Gestion de usuarios de aplicaci&oacute;n de eeutils</title>
 	<script th:src="|${#httpServletRequest.getContextPath()}/js/usuarios/lista.js|"></script>
 	
 <style>
@@ -65,7 +66,7 @@ div.modal {
 	                <input type="hidden" name="app" id="app" th:value="*{app}"/>
 	        </form>
         
-            <table id="userList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld">
+            <table id="userList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld" aria-describedby="tabla_lista_usuarios">
             	<thead>
                     <tr>
                         <th class="mf-sort-ln" href="·" th:title="#{listaUsuarios.tablaIdentificador.title}" th:text="#{listaUsuarios.tablaIdentificador.title}"></th>
@@ -145,7 +146,7 @@ div.modal {
 	                   <input type="text" name="nifedit" id="nifedit"/>
 	                </p> 
 	                	               
-	                 <table id="dir3List" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld">
+	                 <table id="dir3List" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld" aria-describedby="tabla_lista_usuarios_edit">>
 		            	<thead>
 		                    <tr>		                        
 		                        <th class="mf-sort-ln" href="·" th:title="#{listaUsuariosEdit.tablaModal.dir3}" th:text="#{listaUsuariosEdit.tablaModal.dir3}"></th>
