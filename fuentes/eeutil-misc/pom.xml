@@ -674,7 +674,7 @@
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
           <version>5.1.48</version>
-          <scope>runtime</scope>
+          <scope>provided</scope>
           <type>jar</type>
         </dependency>
       </dependencies>
@@ -721,7 +721,7 @@
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
           <version>5.1.48</version>
-          <scope>runtime</scope>
+          <scope>provided</scope>
           <type>jar</type>
         </dependency>
       </dependencies>
@@ -833,7 +833,7 @@
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
           <version>5.1.48</version>
-          <scope>runtime</scope>
+          <scope>provided</scope>
           <type>jar</type>
         </dependency>
       </dependencies>
