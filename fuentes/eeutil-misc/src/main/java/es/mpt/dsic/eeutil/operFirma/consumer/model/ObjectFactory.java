@@ -1,14 +1,3 @@
-/*
- * Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed and may be used,
- * modified and redistributed under the terms of the European Public License (EUPL), either version
- * 1.1 or (at your option) any later version as soon as they are approved by the European
- * Commission. Unless required by applicable law or agreed to in writing, software distributed under
- * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * more details. You should have received a copy of the EUPL1.1 license along with this program; if
- * not, you may find it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- */
-
 
 package es.mpt.dsic.eeutil.operFirma.consumer.model;
 
@@ -31,39 +20,41 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-  private final static QName _ObtenerFirmantesResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "obtenerFirmantesResponse");
-  private final static QName _PostProcesarFirma_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "postProcesarFirma");
-  private final static QName _ErrorTest_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "ErrorTest");
-  private final static QName _ValidacionFirmaResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "validacionFirmaResponse");
-  private final static QName _ObtenerInformacionFirma_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "obtenerInformacionFirma");
-  private final static QName _ValidarCertificado_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "validarCertificado");
-  private final static QName _AmpliarFirma_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "ampliarFirma");
-  private final static QName _ObtenerInformacionFirmaResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "obtenerInformacionFirmaResponse");
-  private final static QName _PostProcesarFirmaResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "postProcesarFirmaResponse");
-  private final static QName _ValidarCertificadoResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "validarCertificadoResponse");
-  private final static QName _AmpliarFirmaResponse_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "ampliarFirmaResponse");
-  private final static QName _ValidacionFirma_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "validacionFirma");
-  private final static QName _ObtenerFirmantes_QNAME =
-      new QName("http://service.ws.inside.dsic.mpt.es/", "obtenerFirmantes");
+  private static final String NAMESPACE_URI_SERVICE = "http://service.ws.inside.dsic.mpt.es/";
+
+  private static final QName _ObtenerFirmantesResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "obtenerFirmantesResponse");
+  private static final QName _PostProcesarFirma_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "postProcesarFirma");
+  private static final QName _ErrorTest_QNAME = new QName(NAMESPACE_URI_SERVICE, "ErrorTest");
+  private static final QName _ValidacionFirmaResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "validacionFirmaResponse");
+  private static final QName _ObtenerInformacionFirma_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "obtenerInformacionFirma");
+  private static final QName _ValidarCertificado_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "validarCertificado");
+  private static final QName _AmpliarFirma_QNAME = new QName(NAMESPACE_URI_SERVICE, "ampliarFirma");
+  private static final QName _ObtenerInformacionFirmaResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "obtenerInformacionFirmaResponse");
+  private static final QName _PostProcesarFirmaResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "postProcesarFirmaResponse");
+  private static final QName _ValidarCertificadoResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "validarCertificadoResponse");
+  private static final QName _AmpliarFirmaResponse_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "ampliarFirmaResponse");
+  private static final QName _ValidacionFirma_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "validacionFirma");
+  private static final QName _ObtenerFirmantes_QNAME =
+      new QName(NAMESPACE_URI_SERVICE, "obtenerFirmantes");
 
   /**
    * Create a new ObjectFactory that can be used to create new instances of schema derived classes
    * for package: es.mpt.dsic.eeutil.operFirma.consumer.model
    * 
    */
-  public ObjectFactory() {}
+  public ObjectFactory() {
+    // Do nothing.
+  }
 
   /**
    * Create an instance of {@link ListaFirmaInfo }
@@ -289,8 +280,8 @@ public class ObjectFactory {
       name = "obtenerFirmantesResponse")
   public JAXBElement<ObtenerFirmantesResponse> createObtenerFirmantesResponse(
       ObtenerFirmantesResponse value) {
-    return new JAXBElement<ObtenerFirmantesResponse>(_ObtenerFirmantesResponse_QNAME,
-        ObtenerFirmantesResponse.class, null, value);
+    return new JAXBElement<>(_ObtenerFirmantesResponse_QNAME, ObtenerFirmantesResponse.class, null,
+        value);
   }
 
   /**
@@ -299,8 +290,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "postProcesarFirma")
   public JAXBElement<PostProcesarFirma> createPostProcesarFirma(PostProcesarFirma value) {
-    return new JAXBElement<PostProcesarFirma>(_PostProcesarFirma_QNAME, PostProcesarFirma.class,
-        null, value);
+    return new JAXBElement<>(_PostProcesarFirma_QNAME, PostProcesarFirma.class, null, value);
   }
 
   /**
@@ -309,7 +299,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "ErrorTest")
   public JAXBElement<EstadoInfo> createErrorTest(EstadoInfo value) {
-    return new JAXBElement<EstadoInfo>(_ErrorTest_QNAME, EstadoInfo.class, null, value);
+    return new JAXBElement<>(_ErrorTest_QNAME, EstadoInfo.class, null, value);
   }
 
   /**
@@ -320,8 +310,8 @@ public class ObjectFactory {
       name = "validacionFirmaResponse")
   public JAXBElement<ValidacionFirmaResponse> createValidacionFirmaResponse(
       ValidacionFirmaResponse value) {
-    return new JAXBElement<ValidacionFirmaResponse>(_ValidacionFirmaResponse_QNAME,
-        ValidacionFirmaResponse.class, null, value);
+    return new JAXBElement<>(_ValidacionFirmaResponse_QNAME, ValidacionFirmaResponse.class, null,
+        value);
   }
 
   /**
@@ -332,8 +322,8 @@ public class ObjectFactory {
       name = "obtenerInformacionFirma")
   public JAXBElement<ObtenerInformacionFirma> createObtenerInformacionFirma(
       ObtenerInformacionFirma value) {
-    return new JAXBElement<ObtenerInformacionFirma>(_ObtenerInformacionFirma_QNAME,
-        ObtenerInformacionFirma.class, null, value);
+    return new JAXBElement<>(_ObtenerInformacionFirma_QNAME, ObtenerInformacionFirma.class, null,
+        value);
   }
 
   /**
@@ -342,8 +332,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "validarCertificado")
   public JAXBElement<ValidarCertificado> createValidarCertificado(ValidarCertificado value) {
-    return new JAXBElement<ValidarCertificado>(_ValidarCertificado_QNAME, ValidarCertificado.class,
-        null, value);
+    return new JAXBElement<>(_ValidarCertificado_QNAME, ValidarCertificado.class, null, value);
   }
 
   /**
@@ -352,7 +341,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "ampliarFirma")
   public JAXBElement<AmpliarFirma> createAmpliarFirma(AmpliarFirma value) {
-    return new JAXBElement<AmpliarFirma>(_AmpliarFirma_QNAME, AmpliarFirma.class, null, value);
+    return new JAXBElement<>(_AmpliarFirma_QNAME, AmpliarFirma.class, null, value);
   }
 
   /**
@@ -364,7 +353,7 @@ public class ObjectFactory {
       name = "obtenerInformacionFirmaResponse")
   public JAXBElement<ObtenerInformacionFirmaResponse> createObtenerInformacionFirmaResponse(
       ObtenerInformacionFirmaResponse value) {
-    return new JAXBElement<ObtenerInformacionFirmaResponse>(_ObtenerInformacionFirmaResponse_QNAME,
+    return new JAXBElement<>(_ObtenerInformacionFirmaResponse_QNAME,
         ObtenerInformacionFirmaResponse.class, null, value);
   }
 
@@ -376,8 +365,8 @@ public class ObjectFactory {
       name = "postProcesarFirmaResponse")
   public JAXBElement<PostProcesarFirmaResponse> createPostProcesarFirmaResponse(
       PostProcesarFirmaResponse value) {
-    return new JAXBElement<PostProcesarFirmaResponse>(_PostProcesarFirmaResponse_QNAME,
-        PostProcesarFirmaResponse.class, null, value);
+    return new JAXBElement<>(_PostProcesarFirmaResponse_QNAME, PostProcesarFirmaResponse.class,
+        null, value);
   }
 
   /**
@@ -389,8 +378,8 @@ public class ObjectFactory {
       name = "validarCertificadoResponse")
   public JAXBElement<ValidarCertificadoResponse> createValidarCertificadoResponse(
       ValidarCertificadoResponse value) {
-    return new JAXBElement<ValidarCertificadoResponse>(_ValidarCertificadoResponse_QNAME,
-        ValidarCertificadoResponse.class, null, value);
+    return new JAXBElement<>(_ValidarCertificadoResponse_QNAME, ValidarCertificadoResponse.class,
+        null, value);
   }
 
   /**
@@ -400,8 +389,7 @@ public class ObjectFactory {
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/",
       name = "ampliarFirmaResponse")
   public JAXBElement<AmpliarFirmaResponse> createAmpliarFirmaResponse(AmpliarFirmaResponse value) {
-    return new JAXBElement<AmpliarFirmaResponse>(_AmpliarFirmaResponse_QNAME,
-        AmpliarFirmaResponse.class, null, value);
+    return new JAXBElement<>(_AmpliarFirmaResponse_QNAME, AmpliarFirmaResponse.class, null, value);
   }
 
   /**
@@ -410,8 +398,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "validacionFirma")
   public JAXBElement<ValidacionFirma> createValidacionFirma(ValidacionFirma value) {
-    return new JAXBElement<ValidacionFirma>(_ValidacionFirma_QNAME, ValidacionFirma.class, null,
-        value);
+    return new JAXBElement<>(_ValidacionFirma_QNAME, ValidacionFirma.class, null, value);
   }
 
   /**
@@ -420,8 +407,7 @@ public class ObjectFactory {
    */
   @XmlElementDecl(namespace = "http://service.ws.inside.dsic.mpt.es/", name = "obtenerFirmantes")
   public JAXBElement<ObtenerFirmantes> createObtenerFirmantes(ObtenerFirmantes value) {
-    return new JAXBElement<ObtenerFirmantes>(_ObtenerFirmantes_QNAME, ObtenerFirmantes.class, null,
-        value);
+    return new JAXBElement<>(_ObtenerFirmantes_QNAME, ObtenerFirmantes.class, null, value);
   }
 
 }

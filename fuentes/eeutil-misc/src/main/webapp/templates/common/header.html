@@ -87,16 +87,10 @@
 						      <a th:href="@{/principal}" th:text="#{layout.menu.option.inicio}"></a>
 						    </li>
 							<li class="mf-appmenu--item mf-appmenu--item__L1 has-submenu">
-								<span th:text="#{layout.menu.option.usuarios}"></span>
-								<ul class="mf-appmenu--submenu">
-									<li class="mf-appmenu--submenu-item"><a th:href="@{/usuariosLista?app=Inside}" th:text="#{layout.menu.option.inside}"></a></li>
-								</ul>
-							</li>
-							<li class="mf-appmenu--item mf-appmenu--item__L1 has-submenu">
 								<span th:text="#{layout.menu.option.aplicaciones}"></span>
 								<ul class="mf-appmenu--submenu">
-									<li class="mf-appmenu--submenu-item"><a th:href="@{/aplicacionesLista?app=Inside}" th:text="#{layout.menu.option.inside}"></a></li>
 									<li class="mf-appmenu--submenu-item"><a th:href="@{/aplicacionesLista?app=Eeutil}" th:text="#{layout.menu.option.eeutil}"></a></li>
+									<li class="mf-appmenu--item mf-appmenu--item__L1 hasnot-submenu"><a th:href="@{/administracion/healthycertificados}" th:text="#{layout.menu.option.cert}"></a></li>
 								</ul>
 							</li>
 								

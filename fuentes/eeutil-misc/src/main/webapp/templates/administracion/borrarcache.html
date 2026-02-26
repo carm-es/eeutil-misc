@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:th="http://www.thymeleaf.org"
+xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+layout:decorator="common/layout" lang="es">
+
+<head>
+	<title>Borrado de cache en eeutils</title>
+	<script th:src="|${#httpServletRequest.getContextPath()}/js/administracion/borrarcache.js|"></script>
+</head>
+
+
+<body th:attr="onload='javascript:carga(\'' +${datos}+ '\');'">
+ <div><p th:utext="${datos}"></p></div>
+</body>
+</html>

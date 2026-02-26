@@ -1,65 +1,181 @@
 <?xml version="1.0"?>
-<!-- Copyright (C) 2012-13 MINHAP, Gobierno de España This program is licensed  	and may be used, modified and redistributed under the terms of the European  	Public License (EUPL), either version 1.1 or (at your option) any later version  	as soon as they are approved by the European Commission. Unless required  	by applicable law or agreed to in writing, software distributed under the  	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS  	OF ANY KIND, either express or implied. See the License for the specific  	language governing permissions and more details. You should have received  	a copy of the EUPL1.1 license along with this program; if not, you may find  	it at http://joinup.ec.europa.eu/software/page/eupl/licence-eupl -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <artifactId>eeutil-misc</artifactId>
   <packaging>war</packaging>
-
   <parent>
-    <groupId>es.gob.aapp.eeutil</groupId>
+    <groupId>es.gob.ad.gestdoc</groupId>
     <artifactId>eeutil-mvn-base-misc</artifactId>
-    <version>4.2.0-CARM.11-SNAPSHOT</version>
+    <version>6.8.2-CARM.12-SNAPSHOT</version>
     <relativePath>../eeutil-mvn-base</relativePath>
   </parent>
-
   <properties>
-    <jetty.port>8091</jetty.port>
-    <stork-commons.version>1.4.3-custom</stork-commons.version>
-    <stork-saml.version>1.1.3-custom</stork-saml.version>
-    <pdfbox.version>2.0.29</pdfbox.version>
-    <verapdf.version>1.18.2</verapdf.version>
+    <jetty.port>10094</jetty.port>
+    <tomcat.version>8.5.40</tomcat.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-
+  <distributionManagement>
+    <repository>
+      <id>snapshots</id>
+      <name>snapshots</name>
+      <url>https://artefactos-ic.scae.redsara.es/nexus/repository/ad-maven-snapshot</url>
+    </repository>
+  </distributionManagement>
   <dependencies>
     <!-- JAVAX -->
+    <!-- <dependency> -->
+    <!-- <groupId>javax.servlet</groupId> -->
+    <!-- <artifactId>servlet-api</artifactId> -->
+    <!-- <scope>provided</scope> -->
+    <!-- </dependency> -->
+    <!-- envio de correos -->
+    <!--		<dependency>-->
+    <!--		    <groupId>javax.mail</groupId>-->
+    <!--		    <artifactId>javax.mail-api</artifactId>-->
+    <!--		    <version>1.6.2</version>-->
+    <!--		</dependency>-->
+    <!--		<dependency>-->
+    <!--		    <groupId>com.sun.mail</groupId>-->
+    <!--		    <artifactId>javax.mail</artifactId>-->
+    <!--		    <version>1.6.2</version>-->
+    <!--		</dependency>-->
+    <!-- fin envio de correos -->
     <dependency>
       <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>jstl</artifactId>
+      <scope>provided</scope>
     </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>taglibs</groupId> -->
+    <!-- <artifactId>standard</artifactId> -->
+    <!-- <scope>provided</scope> -->
+    <!-- </dependency> -->
     <dependency>
-      <groupId>taglibs</groupId>
-      <artifactId>standard</artifactId>
+      <groupId>org.apache.taglibs</groupId>
+      <artifactId>taglibs-standard-impl</artifactId>
+      <version>1.2.5</version>
+      <scope>provided</scope>
     </dependency>
     <!-- APP -->
     <dependency>
-      <groupId>es.gob.aapp.eeutil</groupId>
+      <groupId>es.gob.ad.gestdoc</groupId>
       <artifactId>eeutil-pdf-conversion-igae</artifactId>
       <version>${version.eeutils-shared}</version>
       <exclusions>
         <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
+          <groupId>stax</groupId>
+          <artifactId>stax-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>es.gob.afirma.lib</groupId>
+          <artifactId>afirma-lib-itext-fixed</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+        <!-- <exclusion> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-log4j12</artifactId> -->
+        <!-- </exclusion> -->
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-debug-all</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>es.igae</groupId>
+          <artifactId>vistaDocumentoIGAE</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>es.igae</groupId> -->
+    <!-- <artifactId>vistaDocumentoIGAE</artifactId> -->
+    <!-- <version>10.55.13</version> -->
+    <!-- </dependency> -->
     <dependency>
-      <groupId>es.gob.aapp.eeutil</groupId>
+      <groupId>es.gob.ad.gestdoc</groupId>
       <artifactId>eeutil-comunes</artifactId>
       <version>${version.eeutils-shared}</version>
       <exclusions>
         <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <!-- <exclusion> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-log4j12</artifactId> -->
+        <!-- </exclusion> -->
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>es.gob.aapp.eeutil</groupId>
+      <groupId>es.gob.ad.gestdoc</groupId>
+      <artifactId>eeutil-schredule</artifactId>
+      <version>${version.eeutils-shared}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>stax</groupId>
+          <artifactId>stax-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <!-- <exclusion> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-log4j12</artifactId> -->
+        <!-- </exclusion> -->
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>es.gob.ad.gestdoc</groupId>
       <artifactId>eeutil-load-tables</artifactId>
       <version>${version.eeutils-shared}</version>
       <exclusions>
@@ -68,9 +184,21 @@
           <groupId>org.slf4j</groupId>
         </exclusion>
         <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
+          <groupId>stax</groupId>
+          <artifactId>stax-api</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <!-- <exclusion> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-log4j12</artifactId> -->
+        <!-- </exclusion> -->
       </exclusions>
     </dependency>
     <!-- Cl@ave -->
@@ -78,55 +206,108 @@
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
       <version>1.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.owasp.esapi</groupId>
-      <artifactId>esapi</artifactId>
-      <version>2.1.0</version>
+      <scope>runtime</scope>
       <exclusions>
         <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>org.owasp.esapi</groupId> -->
+    <!-- <artifactId>esapi</artifactId> -->
+    <!-- <version>2.1.0</version> -->
+    <!-- </dependency> -->
+    <dependency>
+      <groupId>org.opensaml</groupId>
+      <artifactId>opensaml</artifactId>
+      <version>2.6.5-eidas_1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>es.clave</groupId>
-      <artifactId>Commons</artifactId>
-      <version>${stork-commons.version}</version>
-      <!--scope>provided</scope -->
+      <groupId>org.opensaml</groupId>
+      <artifactId>xmltooling</artifactId>
+      <version>1.4.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>eu.eidas</groupId>
+      <artifactId>eidas-commons</artifactId>
+      <!-- <version>1.4.3-clave-jvm7</version> -->
+      <version>1.4.3-clave</version>
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
-          <artifactId>xercesImpl</artifactId>
-          <groupId>xerces</groupId>
-        </exclusion>
-        <exclusion>
+          <groupId>org.apache.xalan</groupId>
           <artifactId>xalan</artifactId>
-          <groupId>xalan</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>xmlsec</artifactId>
+          <groupId>org.apache.xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.apache.santuario</groupId>
+          <artifactId>xmlsec</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.apache.xml-resolver</groupId>
           <artifactId>xml-resolver</artifactId>
-          <groupId>xml-resolver</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>bcprov-jdk15on</artifactId>
-          <groupId>org.bouncycastle</groupId>
+          <groupId>org.apache.xml-apis</groupId>
+          <artifactId>xml-apis</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.hazelcast</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.owasp.encoder</groupId>
+          <artifactId>encoder</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>es.clave</groupId>
-      <artifactId>SamlEngine</artifactId>
-      <version>${stork-saml.version}</version>
-      <scope>compile</scope>
+      <groupId>eu.eidas</groupId>
+      <artifactId>eidas-configmodule</artifactId>
+      <!-- <version>1.4.3-clave-jvm7</version> -->
+      <version>1.4.3-clave</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.eidas</groupId>
+      <artifactId>eidas-encryption</artifactId>
+      <!-- <version>1.4.3-clave-jvm7</version> -->
+      <version>1.4.3-clave</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.eidas</groupId>
+      <artifactId>eidas-light-commons</artifactId>
+      <!-- <version>1.4.3-clave-jvm7</version> -->
+      <version>1.4.3-clave</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.eidas</groupId>
+      <artifactId>eidas-saml-engine</artifactId>
+      <!-- <version>1.4.3-clave-jvm7</version> -->
+      <version>1.4.3-clave</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -149,65 +330,145 @@
           <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>xalan</groupId>
+          <groupId>org.apache.xalan</groupId>
           <artifactId>serializer</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>xalan</groupId>
+          <groupId>org.apache.xalan</groupId>
           <artifactId>xalan</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>xerces</groupId>
+          <groupId>org.apache.xerces</groupId>
           <artifactId>xercesImpl</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>xml-resolver</groupId>
+          <groupId>org.apache.xml-resolver</groupId>
           <artifactId>xml-resolver</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>xml-apis</groupId>
+          <groupId>org.apache.xml-apis</groupId>
           <artifactId>xml-apis</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.typesafe</groupId>
+          <artifactId>config</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk18on</artifactId>
-      <version>1.82</version>
-    </dependency>
-    <!--
-    <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>2.8.0</version>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>com.lmax</groupId>
-      <artifactId>disruptor</artifactId>
-      <version>3.4.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-web</artifactId>
-      <version>2.6.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.21</version>
+      <groupId>org.opensaml</groupId>
+      <artifactId>openws</artifactId>
+      <version>1.5.5</version>
       <exclusions>
-      	<exclusion>
-      		<groupId>log4j</groupId>
-      		<artifactId>*</artifactId>
-      	</exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-1.2-api</artifactId>
-      <version>2.6.2</version>
-    </dependency>    
+      <groupId>org.apache.santuario</groupId>
+      <artifactId>xmlsec</artifactId>
+      <version>2.2.3</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>65.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.owasp.esapi</groupId>
+      <artifactId>esapi</artifactId>
+      <version>2.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-collections</groupId>
+          <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+      <artifactId>owasp-java-html-sanitizer</artifactId>
+      <version>20160628.1</version>
+    </dependency>
+    <!--RUNTIME JODCONVERTER -->
+    <dependency>
+      <groupId>org.openoffice</groupId>
+      <artifactId>ridl</artifactId>
+      <version>4.1.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openoffice</groupId>
+      <artifactId>juh</artifactId>
+      <version>4.1.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openoffice</groupId>
+      <artifactId>jurt</artifactId>
+      <version>4.1.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openoffice</groupId>
+      <artifactId>unoil</artifactId>
+      <version>4.1.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <!--FIN RUNTIME JODCONVERTER -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.5</version>
+    </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>org.bouncycastle</groupId> -->
+    <!-- <artifactId>bcmail-jdk15on</artifactId> -->
+    <!-- <version>1.52</version> -->
+    <!-- </dependency> -->
+    <!-- UTILS -->
+    <!-- <dependency> -->
+    <!-- <groupId>xerces</groupId> -->
+    <!-- <artifactId>xercesImpl</artifactId> -->
+    <!-- <version>2.8.0</version> -->
+    <!-- </dependency> -->
     <!-- THYMELEAF -->
     <dependency>
       <groupId>org.thymeleaf</groupId>
@@ -236,67 +497,98 @@
       <artifactId>thymeleaf-layout-dialect</artifactId>
       <version>1.2.1</version>
     </dependency>
-    <!-- PDF TOOLS -->
-    <dependency>
-      <groupId>org.apache.pdfbox</groupId>
-      <artifactId>pdfbox</artifactId>
-      <version>${pdfbox.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.pdfbox</groupId>
-      <artifactId>xmpbox</artifactId>
-      <version>${pdfbox.version}</version>
-    </dependency>
     <!-- para mappear json -->
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>org.codehaus.jackson</groupId> -->
+    <!-- <artifactId>jackson-mapper-asl</artifactId> -->
+    <!-- </dependency> -->
+    <!-- TEST -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <version>1.34</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <finalName>eeutil-misc</finalName>
     <plugins>
-      <!-- Se configura Jetty para que haga scan, use el contextPath estándar  				y utilice como configuración la correspondiente al perfil seleccionado -->
+      <!-- Se configura Jetty para que haga scan, use el contextPath estándar 
+				y utilice como configuración la correspondiente al perfil seleccionado -->
       <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.14</version>
-        <configuration>
-          <tmpDirectory>/tmp</tmpDirectory>
-          <contextPath>/${deploy.context.path}</contextPath>
-          <scanIntervalSeconds>3</scanIntervalSeconds>
-          <systemProperties>
-            <systemProperty>
-              <name>org.mortbay.util.URI.charset</name>
-              <value>ISO-8859-1</value>
-            </systemProperty>
-            <systemProperty>
-              <name>eeutil-misc.config.path</name>
-              <value>${basedir}/src/main/config/${config.folder}</value>
-            </systemProperty>
-            <systemProperty>
-              <name>org.mortbay.jetty.Request.maxFormContentSize</name>
-              <value>1000000</value>
-            </systemProperty>
-          </systemProperties>
-          <connectors>
-            <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-              <port>${jetty.port}</port>
-              <maxIdleTime>30000</maxIdleTime>
-            </connector>
-          </connectors>
-        </configuration>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.1.4</version>
+        <dependencies>
+          <!-- overwrite dependency on spotbugs if you want to specify the version 
+						of spotbugs -->
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>4.1.4</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <!-- NATIVE2ASCII comentar para ejecutar sonar local -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>native2ascii-maven-plugin</artifactId>
+        <version>1.0-alpha-1</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.7</version>
+            <scope>system</scope>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>native2ascii-utf8-resources</id>
+            <goals>
+              <goal>native2ascii</goal>
+            </goals>
+            <configuration>
+              <dest>${basedir}/target/classes</dest>
+              <src>${basedir}/src/main/config/local</src>
+              <encoding>8859_1</encoding>
+              <includes>messages.properties</includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <!-- attached to Maven test phase -->
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings  					only. It has no influence on the Maven build itself. -->
+        <!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -306,15 +598,21 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>native2ascii-maven-plugin</artifactId>
-                    <versionRange>[1.0-alpha-1,)</versionRange>
+                    <groupId>
+											org.codehaus.mojo
+										</groupId>
+                    <artifactId>
+											native2ascii-maven-plugin
+										</artifactId>
+                    <versionRange>
+											[1.0-alpha-1,)
+										</versionRange>
                     <goals>
                       <goal>native2ascii</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore />
+                    <ignore/>
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -325,19 +623,34 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
+	  <version>3.3.2</version>
           <configuration>
             <webResources>
               <resource>
-                <directory>${project.build.sourceDirectory}</directory>
+                <directory>${project.build.directory}</directory>
                 <targetPath>WEB-INF/classes</targetPath>
               </resource>
             </webResources>
-            <webXml>${project.basedir}\src\main\webapp\WEB-INF\web.xml</webXml>
-            <failOnMissingWebXml>false</failOnMissingWebXml>
           </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/pom.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/pom.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
   </build>
   <profiles>
     <profile>
@@ -349,12 +662,20 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
+        <!--  PDF TOOLS -->
+        <!--				<dependency>-->
+        <!--					<groupId>com.pdftools</groupId>-->
+        <!--					<artifactId>pdftoolssdk</artifactId>-->
+        <!--					<version>1.1.1</version>		-->
+        <!--				</dependency>-->
+        <!-- FIN PDFTOOLS LINUX -->
+        <!--  FIN PDFTOOLS -->
         <dependency>
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
-          <version>3.1.14</version>
+          <version>5.1.48</version>
+          <scope>runtime</scope>
           <type>jar</type>
-	  <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -363,18 +684,460 @@
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
+      <!-- PDF TOOLS LINUX -->
+      <dependencies>
+        <!--  PDF TOOLS -->
+        <!--				<dependency>-->
+        <!--					<groupId>com.pdftools</groupId>-->
+        <!--					<artifactId>pdftoolssdk</artifactId>-->
+        <!--					<version>1.1.1</version>		-->
+        <!--				</dependency>-->
+        <!--  FIN PDFTOOLS -->
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc6</artifactId>
+          <version>11.2.0.4</version>
+          <type>jar</type>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
     </profile>
     <profile>
       <id>debug</id>
       <dependencies>
+        <!-- PDF TOOLS WINDOWS -->
+        <!--				<dependency>-->
+        <!--					<groupId>com.pdftools</groupId>-->
+        <!--					<artifactId>pdftoolssdk</artifactId>-->
+        <!--					<version>1.1.1</version>		-->
+        <!--				</dependency>-->
+        <!-- FIN PDF TOOLS WINDOWS -->
+        <!-- <dependency> -->
+        <!-- <groupId>com.oracle</groupId> -->
+        <!-- <artifactId>ojdbc6</artifactId> -->
+        <!-- <version>11.2.0.4</version> -->
+        <!-- </dependency> -->
         <dependency>
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
-          <version>3.1.14</version>
+          <version>5.1.48</version>
+          <scope>runtime</scope>
           <type>jar</type>
-	  <scope>provided</scope>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven3-plugin</artifactId>
+            <version>1.9.0</version>
+            <configuration>
+              <container>
+                <containerId>tomcat8x</containerId>
+                <timeout>300000</timeout>
+                <!-- <zipUrlInstaller> -->
+                <!-- <url>https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/8.5.40/tomcat-8.5.40.zip</url> -->
+                <!-- </zipUrlInstaller> -->
+                <artifactInstaller>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>${tomcat.version}</version>
+                </artifactInstaller>
+                <!-- <systemProperties> -->
+                <!-- <eeutil-firma.config.path>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma</eeutil-firma.config.path> -->
+                <!-- <javax.net.ssl.trustStore>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/keystore/minhap.jks</javax.net.ssl.trustStore> -->
+                <!-- <javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword> -->
+                <!-- <local_home_app>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma</local_home_app> -->
+                <!-- <modulo>EEUTIL-FIRMA</modulo> -->
+                <!-- <logging.config>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma/log4j.properties</logging.config> -->
+                <!-- <java.awt.headless>true</java.awt.headless> -->
+                <!-- </systemProperties> -->
+              </container>
+              <configuration>
+                <type>standalone</type>
+                <home>${project.build.directory}/catalina-base</home>
+                <properties>
+                  <cargo.servlet.port>${jetty.port}</cargo.servlet.port>
+                  <cargo.rmi.port>28209</cargo.rmi.port>
+                  <cargo.tomcat.ajp.port>28013</cargo.tomcat.ajp.port>
+                  <cargo.jvmargs>-Xms1024m
+										-Xmx1024m
+										-Deeutil-misc.config.path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/misc"
+										-Djavax.net.ssl.trustStore="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/keystore/minhap.jks"
+										-Djavax.net.ssl.trustStorePassword="password"
+										-Dlocal_home_app="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/misc"
+
+										-Dtrazador-level="3"
+										-Dtrazador-path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/logs/trazabilidad/"
+
+										-Dmodulo="EEUTIL-MISC"
+									</cargo.jvmargs>
+                  <!-- -Dcom.sun.management.jmxremote.port=46924 -Dcom.sun.management.jmxremote.authenticate=false 
+										-Dcom.sun.management.jmxremote.ssl=false -->
+                </properties>
+              </configuration>
+              <deployables>
+                <deployable>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>/eeutil-misc</context>
+                  </properties>
+                </deployable>
+              </deployables>
+            </configuration>
+            <!-- <executions> -->
+            <!-- <execution> -->
+            <!-- <id>start</id> -->
+            <!-- <phase>pre-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>start</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- <execution> -->
+            <!-- <id>stop</id> -->
+            <!-- <phase>post-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>stop</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- <execution> -->
+            <!-- <id>package</id> -->
+            <!-- <phase>post-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>package</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- </executions> -->
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>ddebug</id>
+      <dependencies>
+        <!--  PDF TOOLS WINDOWS-->
+        <dependency>
+          <groupId>com.pdftools</groupId>
+          <artifactId>pdftoolssdk</artifactId>
+          <version>1.1.1</version>
+        </dependency>
+        <!-- FIN PDF TOOLS WINDOWS -->
+        <!-- <dependency> -->
+        <!-- <groupId>com.oracle</groupId> -->
+        <!-- <artifactId>ojdbc6</artifactId> -->
+        <!-- <version>11.2.0.4</version> -->
+        <!-- </dependency> -->
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.1.48</version>
+          <scope>runtime</scope>
+          <type>jar</type>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven3-plugin</artifactId>
+            <version>1.9.0</version>
+            <configuration>
+              <container>
+                <containerId>tomcat8x</containerId>
+                <timeout>300000</timeout>
+                <!-- <zipUrlInstaller> -->
+                <!-- <url>https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/8.5.40/tomcat-8.5.40.zip</url> -->
+                <!-- </zipUrlInstaller> -->
+                <artifactInstaller>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>${tomcat.version}</version>
+                </artifactInstaller>
+                <!-- <systemProperties> -->
+                <!-- <eeutil-firma.config.path>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma</eeutil-firma.config.path> -->
+                <!-- <javax.net.ssl.trustStore>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/keystore/minhap.jks</javax.net.ssl.trustStore> -->
+                <!-- <javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword> -->
+                <!-- <local_home_app>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma</local_home_app> -->
+                <!-- <modulo>EEUTIL-FIRMA</modulo> -->
+                <!-- <logging.config>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/firma/log4j.properties</logging.config> -->
+                <!-- <java.awt.headless>true</java.awt.headless> -->
+                <!-- </systemProperties> -->
+              </container>
+              <configuration>
+                <type>standalone</type>
+                <home>${project.build.directory}/catalina-base</home>
+                <properties>
+                  <cargo.servlet.port>${jetty.port}</cargo.servlet.port>
+                  <cargo.rmi.port>28209</cargo.rmi.port>
+                  <cargo.tomcat.ajp.port>28013</cargo.tomcat.ajp.port>
+                  <cargo.jvmargs>-Xms1024m
+										-Xmx1024m
+										-Deeutil-misc.config.path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/misc"
+										-Djavax.net.ssl.trustStore="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/keystore/minhap.jks"
+										-Djavax.net.ssl.trustStorePassword="password"
+										-Dlocal_home_app="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/local/misc"
+
+										-Dtrazador-level="3"
+										-Dtrazador-path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_repo_git/config_jetty/logs/trazabilidad/"
+
+										-Dmodulo="EEUTIL-MISC"
+										-Xdebug
+										-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=29013
+										-Xnoagent
+<!-- 										-verbose:class -->
+<!-- 										-Djavax.net.debug=ssl -->
+									</cargo.jvmargs>
+                  <!-- -Dcom.sun.management.jmxremote.port=46924 -Dcom.sun.management.jmxremote.authenticate=false 
+										-Dcom.sun.management.jmxremote.ssl=false -->
+                </properties>
+              </configuration>
+              <deployables>
+                <deployable>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>/eeutil-misc</context>
+                  </properties>
+                </deployable>
+              </deployables>
+            </configuration>
+            <!-- <executions> -->
+            <!-- <execution> -->
+            <!-- <id>start</id> -->
+            <!-- <phase>pre-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>start</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- <execution> -->
+            <!-- <id>stop</id> -->
+            <!-- <phase>post-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>stop</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- <execution> -->
+            <!-- <id>package</id> -->
+            <!-- <phase>post-integration-test</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>package</goal> -->
+            <!-- </goals> -->
+            <!-- </execution> -->
+            <!-- </executions> -->
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven3-plugin</artifactId>
+            <version>1.9.0</version>
+            <configuration>
+              <container>
+                <containerId>tomcat8x</containerId>
+                <timeout>300000</timeout>
+                <!-- 						<zipUrlInstaller> -->
+                <!-- 							<url>https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/8.5.40/tomcat-8.5.40.zip</url> -->
+                <!-- 						</zipUrlInstaller> -->
+                <artifactInstaller>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>${tomcat.version}</version>
+                </artifactInstaller>
+                <!-- 						  <systemProperties> -->
+                <!--     						<eeutil-firma.config.path>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/firma</eeutil-firma.config.path> -->
+                <!--     						<javax.net.ssl.trustStore>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/keystore/minhap.jks</javax.net.ssl.trustStore> -->
+                <!--     						<javax.net.ssl.trustStorePassword>password</javax.net.ssl.trustStorePassword> -->
+                <!--     						<local_home_app>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/firma</local_home_app> -->
+                <!--     						<modulo>EEUTIL-FIRMA</modulo> -->
+                <!--     						<logging.config>C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/firma/log4j.properties</logging.config> -->
+                <!--     						<java.awt.headless>true</java.awt.headless> -->
+                <!--   						</systemProperties> -->
+              </container>
+              <configuration>
+                <type>standalone</type>
+                <home>${project.build.directory}/catalina-base</home>
+                <properties>
+                  <cargo.servlet.port>${jetty.port}</cargo.servlet.port>
+                  <cargo.rmi.port>28209</cargo.rmi.port>
+                  <cargo.tomcat.ajp.port>28013</cargo.tomcat.ajp.port>
+                  <cargo.jvmargs>-Xms1024m 
+								-Xmx1024m 
+								-Deeutil-misc.config.path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/misc" 
+								-Djavax.net.ssl.trustStore="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/keystore/minhap.jks" 
+								-Djavax.net.ssl.trustStorePassword="password" 
+								-Dlocal_home_app="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/local/misc"
+								-Dtrazador-level="3"
+								-Dtrazador-path="C:/d/proyectos/EEUTIL/java/workspace_EEUtils_rama_git/config_jetty/logs/trazabilidad/"
+								-Dmodulo="EEUTIL-MISC"
+								-Xdebug
+          						-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=29013
+          						-Xnoagent
+          						-verbose:class
+								</cargo.jvmargs>
+                  <!-- -Dcom.sun.management.jmxremote.port=46924 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false  -->
+                </properties>
+              </configuration>
+              <deployables>
+                <deployable>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>/eeutil-misc</context>
+                  </properties>
+                </deployable>
+              </deployables>
+            </configuration>
+            <!-- 				<executions> -->
+            <!-- 					<execution> -->
+            <!-- 						<id>start</id> -->
+            <!-- 						<phase>pre-integration-test</phase> -->
+            <!-- 						<goals> -->
+            <!-- 							<goal>start</goal> -->
+            <!-- 						</goals> -->
+            <!-- 					</execution> -->
+            <!-- 					<execution> -->
+            <!-- 						<id>stop</id> -->
+            <!-- 						<phase>post-integration-test</phase> -->
+            <!-- 						<goals> -->
+            <!-- 							<goal>stop</goal> -->
+            <!-- 						</goals> -->
+            <!-- 					</execution> -->
+            <!-- 					<execution> -->
+            <!-- 						<id>package</id> -->
+            <!-- 						<phase>post-integration-test</phase> -->
+            <!-- 						<goals> -->
+            <!-- 							<goal>package</goal> -->
+            <!-- 						</goals> -->
+            <!-- 					</execution> -->
+            <!-- 				</executions> -->
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>trazador</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjrt</artifactId>
+          <version>1.6.11</version>
+        </dependency>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjweaver</artifactId>
+          <version>1.6.11</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>aspectj-maven-plugin</artifactId>
+            <version>1.11</version>
+            <configuration>
+              <aspectLibraries>
+                <aspectLibrary>
+                  <groupId>es.mpt.inside</groupId>
+                  <artifactId>trazadoreeutil</artifactId>
+                </aspectLibrary>
+              </aspectLibraries>
+              <complianceLevel>1.8</complianceLevel>
+              <source>1.8</source>
+              <target>1.8</target>
+              <showWeaveInfo>true</showWeaveInfo>
+              <verbose>true</verbose>
+              <Xlint>ignore</Xlint>
+              <encoding>UTF-8 </encoding>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>compile</goal>
+                  <!-- <goal>test-compile</goal> -->
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>trazaServExt</id>
+      <dependencies>
+        <dependency>
+          <groupId>es.mpt.inside</groupId>
+          <artifactId>eeutil-ext</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjrt</artifactId>
+          <version>1.9.1</version>
+          <scope>runtime</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjweaver</artifactId>
+          <version>1.9.1</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>aspectj-maven-plugin</artifactId>
+            <version>1.11</version>
+            <configuration>
+              <aspectLibraries>
+                <aspectLibrary>
+                  <groupId>es.mpt.inside</groupId>
+                  <artifactId>eeutil-ext</artifactId>
+                </aspectLibrary>
+              </aspectLibraries>
+              <complianceLevel>1.8</complianceLevel>
+              <source>1.8</source>
+              <target>1.8</target>
+              <showWeaveInfo>true</showWeaveInfo>
+              <verbose>true</verbose>
+              <Xlint>ignore</Xlint>
+              <encoding>UTF-8 </encoding>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
+  <repositories>
+    <!-- Repositorio local con las librerias de PdfTools -->
+    <!-- <repository> -->
+    <!-- <id>local-maven-repo</id> -->
+    <!-- <url>file:///${project.basedir}/pdftools</url> -->
+    <!-- </repository> -->
+    <repository>
+      <id>temporal</id>
+      <name>gestdoc temporal</name>
+      <url>https://artefactos-ic.scae.redsara.es/nexus/repository/ad-maven-temporal-gestdoc</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 </project>

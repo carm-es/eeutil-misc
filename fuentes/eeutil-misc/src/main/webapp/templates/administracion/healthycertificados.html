@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:th="http://www.thymeleaf.org"
+xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+layout:decorator="common/layout" lang="es">
+
+
+<head>
+<title>Gesti&oacute;n de certificados para firmar en eeutils</title>
+</head>
+
+<body>
+<div class="mf-window-header--hgroup">
+    <h3 class="mf-window-header--title" th:text="#{titulo.healthycertificados}"></h3>
+</div>
+
+<div id="contentData">
+	<div layout:fragment="content">
+	 <!--  <div><p th:utext="${datos}"></p></div>-->
+	   <!--  <table id="appList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld" style='resize: both; overflow: auto;'>
+	            	<thead>
+	                    <tr>
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaAliasCertificado.title}" th:text="#{listaCertificados.tablaAliasCertificado.title}"></th>                                            
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaTipoAlmacen.title}" th:text="#{listaCertificados.tablaTipoAlmacen.title}"></th>          
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaFechaExpiracionInicio.title}" th:text="#{listaCertificados.tablaFechaExpiracionInicio.title}"></th>  
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaFechaExpiracionFin.title}" th:text="#{listaCertificados.tablaFechaExpiracionFin.title}"></th>                                            
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaTipoCertificado.title}" th:text="#{listaCertificados.tablaTipoCertificado.title}"></th>
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaSerialCertificado.title}" th:text="#{listaCertificados.tablaSerialCertificado.title}"></th> 
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.aplicaciones.title}" th:text="#{listaCertificados.aplicaciones.title}"></th>                                            
+	                    </tr>
+	                </thead>
+	                <tbody>    
+		                <tr th:each="instance : ${datos}">
+						    <td class="grid-column-creador" th:text="${instance.value.aliasCertificado}" maxlength="50" alt="${instance.value.aliasCertificado}"></td>
+						    <td class="grid-column-creador" th:text="${instance.value.tipoAlmacen}" maxlength="50" alt="${instance.value.tipoAlmacen}"></td>
+						    <td th:if="${instance.value.dateExpiryCert!=null}" class="grid-column-creador" th:text="${instance.value.dateExpiryCert[1]}" maxlength="50" alt="${instance.value.dateExpiryCert[1]}"></td>
+						    <td th:if="${instance.value.dateExpiryCert==null}" class="grid-column-creador" maxlength="50" alt=""></td>
+						    <td th:if="${instance.value.dateExpiryCert!=null}" class="grid-column-creador" th:text="${instance.value.dateExpiryCert[0]}" maxlength="50" alt="${instance.value.dateExpiryCert[0]}"></td>
+						    <td th:if="${instance.value.dateExpiryCert==null}" class="grid-column-creador" maxlength="50"></td>
+						    <td class="grid-column-creador" th:text="${instance.value.typeCert}" maxlength="50" alt="${instance.value.typeCert}"></td>
+						    <td class="grid-column-creador" th:text="${instance.value.serialCert}" maxlength="50" alt="${instance.value.serialCert}"></td>
+						    <td class="grid-column-creador" th:text="${instance.value.aplicaciones}" maxlength="50" alt="${instance.value.aplicaciones}"></td>
+						</tr>
+					</tbody>
+	            </table>-->
+	 
+	            
+	            <table id="appList" class="mf-table-data mf-table-data__sortable mf-table-data__zebra fld" aria-describedby="tabla_lista_certificados">
+	            	<thead>
+	                    <tr>
+	                    	<th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaIdAplicacion.title}" th:text="#{listaCertificados.aplicaciones.title}"></th>
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaAliasCertificado.title}" th:text="#{listaCertificados.tablaAliasCertificado.title}"></th>                                                                             
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaFechaExpiracionInicio.title}" th:text="#{listaCertificados.tablaFechaExpiracionInicio.title}"></th>  
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaFechaExpiracionFin.title}" th:text="#{listaCertificados.tablaFechaExpiracionFin.title}"></th>                                            	                        
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaSerialCertificado.title}" th:text="#{listaCertificados.tablaSerialCertificado.title}"></th> 	                        
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaTipoCertificado.title}" th:text="#{listaCertificados.tablaTipoCertificado.title}"></th>
+	                        <th class="mf-sort-ln" href="." th:title="#{listaCertificados.tablaTipoAlmacen.title}" th:text="#{listaCertificados.tablaTipoAlmacen.title}"></th>                                            
+	                    </tr>
+	                </thead>
+	                <tbody>    
+		                <tr th:each="instance : ${datos}">
+		                	<td class="grid-column-creador" th:text="${instance.value.aplicaciones}" style="max-width: 20ch; overflow:hidden; text-overflow: ellipsis;  white-space: nowrap;" th:title="${instance.value.aplicaciones}" ></td>						    
+						    <td class="grid-column-creador" th:text="${instance.value.aliasCertificado}"></td>							    
+						    <td class="grid-column-creador" th:if="${instance.value.dateExpiryCert == null} and ${instance.value.dateExpiryCert == null} and ${instance.value.dateExpiryCert == null} " th:text="${instance.value.error}" th:title="${instance.value.error}" style="color:red; max-width: 105ch; overflow:hidden; text-overflow: ellipsis;  white-space: nowrap;" colspan="4"></td>							    
+						    <div th:if="${instance.value.dateExpiryCert != null} or ${instance.value.dateExpiryCert != null} or ${instance.value.dateExpiryCert != null}">				    							
+								<td class="grid-column-creador" th:if="${instance.value.dateExpiryCert != null}" th:text="${#dates.format(instance.value.dateExpiryCert[0],'dd/MM/yyyy hh:mm:ss')}"></td>
+								<td class="grid-column-creador" th:if="${instance.value.dateExpiryCert == null}"></td>					    					 
+								<td class="grid-column-creador" th:if="${instance.value.dateExpiryCert != null}" th:text="${#dates.format(instance.value.dateExpiryCert[1],'dd/MM/yyyy hh:mm:ss')}"></td>
+								<td class="grid-column-creador" th:if="${instance.value.dateExpiryCert == null}"></td>									
+								<td class="grid-column-creador" th:if="${instance.value.serialCert != null}" th:text="${instance.value.serialCert}"></td>							
+								<td class="grid-column-creador" th:if="${instance.value.serialCert == null}"></td>								
+								<td class="grid-column-creador" th:if="${instance.value.typeCert != null}" th:text="${instance.value.typeCert}"></td>							
+								<td class="grid-column-creador" th:if="${instance.value.typeCert == null}"></td>								
+							</div>													
+							<td class="grid-column-creador" th:text="${instance.value.tipoAlmacen}"></td>		 						    
+						</tr>
+					</tbody>
+	            </table>
+	 
+	</div> 
+</div>
+</body>
+</html>
