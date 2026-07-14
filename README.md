@@ -3,11 +3,11 @@
 Instalación y evolutivo de la versión distribuible de Eeutil-Misc.
 
 Se parte de la versión distribuible que se ofrece en el Área de descargas de la Suite Inside del Centro de Transferencia Tecnológica:
-*  https://administracionelectronica.gob.es/ctt/inside/descargas -> Versión distribuible (Código fuente) -> Distribuible Eeutil-Misc v4.2.0 (noviembre 2018)
+*  [https://administracionelectronica.gob.es/ctt/csvcreator/descargas](https://administracionelectronica.gob.es/ctt/csvcreator/descargas) -> Versión distribuible (Código fuente) -> Distribuible Eeutil-Misc v6.8.2 (enero 2026)
 
-Eeutils(CSV Creator) es el componente de la Suite CSV que agrupa diversas funcionalidades relacionadas con la generación de CSV y gestión de firmas e informes. Eeutils(CSV Creator) se divide en cinco módulos, entre los que se encuentra Eeutil-Misc.
+Eeutils(CSV Creator) es el componente de la Suite CSV que agrupa diversas funcionalidades relacionadas con la generación de CSV y gestión de firmas e informes. Eeutils(CSV Creator) se divide en siete módulos, entre los que se encuentra Eeutil-Misc.
 
-**Eeutil-Misc** es el componente utilizado para la validación ENI de documentos y expedientes.
+**Eeutil-Misc** es el componente utilizado para la conversión de documentos a otros formatos, así como validar expedientes y documentos ENI.
 
 # Características a tener en cuenta
 
